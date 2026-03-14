@@ -16,7 +16,7 @@
         }
         h1 { color: #333; margin-bottom: 10px; }
         
-        /* 模式切換按鈕設計 */
+        /* 模式切換按鈕 */
         .tab-container {
             display: flex;
             justify-content: center;
@@ -35,7 +35,6 @@
             position: relative;
             font-weight: bold;
         }
-        /* 選中狀態與小標記 */
         .tab-btn.active {
             background-color: #4CAF50;
             color: white;
@@ -57,7 +56,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* 控制面板設計 */
+        /* 控制面板 */
         .controls {
             background: white;
             padding: 20px;
@@ -100,7 +99,7 @@
         .error { background-color: #FFF3E0; color: #E65100; }
         .multiple-msg { background-color: #EDE7F6; color: #512DA8; }
 
-        /* 視覺化方塊區域 */
+        /* 網格與方塊 */
         .grid-wrapper {
             overflow-x: auto;
             padding: 20px;
@@ -115,7 +114,6 @@
         
         #gridContainer { transition: all 0.3s ease; }
         
-        /* 方塊樣式，加入置中文字以顯示數字 */
         .block {
             width: 45px;
             height: 45px;
@@ -127,16 +125,14 @@
             color: white;
             font-weight: bold;
             font-size: 1.1rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* 讓數字更清晰 */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
         
-        /* 顏色狀態 */
         .perfect { background-color: #4CAF50; border: 2px solid #388E3C; } 
         .imperfect-main { background-color: #2196F3; border: 2px solid #1976D2; }
         .imperfect-remainder { background-color: #F44336; border: 2px solid #D32F2F; } 
         .multiple-block { background-color: #9C27B0; border: 2px solid #7B1FA2; }
         
-        /* 隱藏不想顯示的面板 */
         .hidden { display: none !important; }
     </style>
 </head>
@@ -145,8 +141,8 @@
     <h1>數學陣列探索器</h1>
 
     <div class="tab-container">
-        <button id="btnFactor" class="tab-btn active" onclick="switchMode('factor')">尋找因數</button>
-        <button id="btnMultiple" class="tab-btn" onclick="switchMode('multiple')">創造倍數</button>
+        <button id="btnFactor" class="tab-btn active">尋找因數</button>
+        <button id="btnMultiple" class="tab-btn">創造倍數</button>
     </div>
 
     <div class="controls">
@@ -180,42 +176,132 @@
     </div>
 
     <script>
-        let currentMode = 'factor';
+        // 使用 DOMContentLoaded 確保網頁完全載入後才執行 JavaScript
+        document.addEventListener('DOMContentLoaded', () => {
+            let currentMode = 'factor';
 
-        // DOM 元素取得
-        const btnFactor = document.getElementById('btnFactor');
-        const btnMultiple = document.getElementById('btnMultiple');
-        const panelFactor = document.getElementById('panelFactor');
-        const panelMultiple = document.getElementById('panelMultiple');
-        
-        const factorTotal = document.getElementById('factorTotal');
-        const factorSlider = document.getElementById('factorSlider');
-        const factorRowsVal = document.getElementById('factorRowsVal');
-        
-        const multipleBase = document.getElementById('multipleBase');
-        const multipleSlider = document.getElementById('multipleSlider');
-        const multipleTimesVal = document.getElementById('multipleTimesVal');
-        
-        const gridContainer = document.getElementById('gridContainer');
-        const messageDisplay = document.getElementById('message');
+            // 取得所有需要的元素
+            const btnFactor = document.getElementById('btnFactor');
+            const btnMultiple = document.getElementById('btnMultiple');
+            const panelFactor = document.getElementById('panelFactor');
+            const panelMultiple = document.getElementById('panelMultiple');
+            
+            const factorTotal = document.getElementById('factorTotal');
+            const factorSlider = document.getElementById('factorSlider');
+            const factorRowsVal = document.getElementById('factorRowsVal');
+            
+            const multipleBase = document.getElementById('multipleBase');
+            const multipleSlider = document.getElementById('multipleSlider');
+            const multipleTimesVal = document.getElementById('multipleTimesVal');
+            
+            const gridContainer = document.getElementById('gridContainer');
+            const messageDisplay = document.getElementById('message');
 
-        // 切換模式函數
-        function switchMode(mode) {
-            currentMode = mode;
-            if (mode === 'factor') {
-                btnFactor.classList.add('active');
-                btnMultiple.classList.remove('active');
-                panelFactor.classList.remove('hidden');
-                panelMultiple.classList.add('hidden');
-            } else {
-                btnMultiple.classList.add('active');
-                btnFactor.classList.remove('active');
-                panelMultiple.classList.remove('hidden');
-                panelFactor.classList.add('hidden');
+            // 切換模式功能
+            function switchMode(mode) {
+                currentMode = mode;
+                if (mode === 'factor') {
+                    btnFactor.classList.add('active');
+                    btnMultiple.classList.remove('active');
+                    panelFactor.classList.remove('hidden');
+                    panelMultiple.classList.add('hidden');
+                } else {
+                    btnMultiple.classList.add('active');
+                    btnFactor.classList.remove('active');
+                    panelMultiple.classList.remove('hidden');
+                    panelFactor.classList.add('hidden');
+                }
+                updateGrid();
             }
-            updateGrid();
-        }
 
-        // 主要繪製函數
-        function updateGrid() {
-            gridContainer.innerHTML = ''; //
+            // 按鈕綁定點擊事件
+            btnFactor.addEventListener('click', () => switchMode('factor'));
+            btnMultiple.addEventListener('click', () => switchMode('multiple'));
+
+            // 核心繪製功能
+            function updateGrid() {
+                gridContainer.innerHTML = ''; // 清空畫面
+
+                if (currentMode === 'factor') {
+                    let total = parseInt(factorTotal.value) || 1;
+                    let rows = parseInt(factorSlider.value) || 1;
+                    
+                    if (total > 100) { total = 100; factorTotal.value = 100; }
+                    factorSlider.max = total;
+                    if (rows > total) { rows = total; factorSlider.value = total; }
+                    
+                    factorRowsVal.textContent = rows;
+
+                    gridContainer.style.display = 'grid';
+                    gridContainer.style.gridTemplateRows = `repeat(${rows}, 45px)`;
+                    gridContainer.style.gridAutoFlow = 'column';
+                    gridContainer.style.gap = '8px';
+
+                    const isFactor = (total % rows === 0);
+                    const columns = Math.floor(total / rows);
+                    const remainder = total % rows;
+                    const fullBlocksCount = columns * rows;
+
+                    for (let i = 0; i < total; i++) {
+                        const block = document.createElement('div');
+                        block.classList.add('block');
+                        block.textContent = i + 1;
+                        
+                        if (isFactor) {
+                            block.classList.add('perfect');
+                        } else {
+                            if (i < fullBlocksCount) {
+                                block.classList.add('imperfect-main');
+                            } else {
+                                block.classList.add('imperfect-remainder');
+                            }
+                        }
+                        gridContainer.appendChild(block);
+                    }
+
+                    if (isFactor) {
+                        messageDisplay.textContent = `完美長方形！${total} ÷ ${rows} = ${columns}，所以 ${rows} 是因數！`;
+                        messageDisplay.className = 'message success';
+                    } else {
+                        messageDisplay.textContent = `多出了 ${remainder} 個紅方塊。不能整除，所以 ${rows} 不是因數。`;
+                        messageDisplay.className = 'message error';
+                    }
+
+                } else {
+                    let base = parseInt(multipleBase.value) || 1;
+                    let times = parseInt(multipleSlider.value) || 1;
+                    
+                    if (base > 20) { base = 20; multipleBase.value = 20; }
+                    multipleTimesVal.textContent = times;
+
+                    gridContainer.style.display = 'grid';
+                    gridContainer.style.gridTemplateColumns = `repeat(${base}, 45px)`;
+                    gridContainer.style.gridAutoFlow = 'row';
+                    gridContainer.style.gap = '8px';
+
+                    const totalBlocks = base * times;
+
+                    for (let i = 0; i < totalBlocks; i++) {
+                        const block = document.createElement('div');
+                        block.classList.add('block', 'multiple-block');
+                        block.textContent = i + 1;
+                        gridContainer.appendChild(block);
+                    }
+
+                    messageDisplay.textContent = `${base} 的 ${times} 倍是 ${totalBlocks}。 (${base} × ${times} = ${totalBlocks})`;
+                    messageDisplay.className = 'message multiple-msg';
+                }
+            }
+
+            // 輸入框與滑桿綁定事件
+            factorTotal.addEventListener('input', updateGrid);
+            factorSlider.addEventListener('input', updateGrid);
+            multipleBase.addEventListener('input', updateGrid);
+            multipleSlider.addEventListener('input', updateGrid);
+
+            // 啟動時繪製第一次
+            updateGrid();
+        });
+    </script>
+</body>
+</html>
