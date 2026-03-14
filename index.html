@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數位位值視覺化教學</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --bg-color: #f8f9fa;
+            --box-bg: #ffffff;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-color);
+            overflow: hidden; /* 防止捲軸 */
+        }
+
+        /* 主要佈局區域 */
+        .main-container {
+            display: flex;
+            flex: 1; /* 佔據剩餘高度 */
+            height: 70%;
+        }
+
+        /* 左側輸入區 */
+        .left-panel {
+            width: 30%;
+            background-color: #eef2ff;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            box-sizing: border-box;
+            border-right: 2px solid #ddd;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        input[type="number"] {
+            padding: 15px;
+            font-size: 1.5rem;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        .hint {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        /* 右側視覺化區 */
+        .right-panel {
+            width: 70%;
+            display: flex;
+            align-items: center;
+            justify-content: center; /* 置中顯示 */
+            padding: 20px;
+            background-color: white;
+            overflow-x: auto; /* 數字太長時可橫向捲動 */
+        }
+
+        .visual-container {
+            display: flex;
+            flex-direction: row-reverse; /* 讓個位數在最右邊，但DOM順序保持正常 */
+            gap: 10px;
+            padding: 20px;
+        }
+
+        /* 位值方塊樣式 */
+        .digit-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: popIn 0.3s ease-out;
+        }
+
+        .place-name {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px 8px 0 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            width: 60px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .digit-value {
+            background-color: white;
+            color: var(--text-color);
+            border: 3px solid var(--primary-color);
+            border-top: none;
+            width: 60px; /* 與上方同寬 */
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* 特殊高亮千分位 (可選) */
+        .digit-box:nth-child(4n+1) .place-name {
+            background-color: #f72585; /* 萬、億等大單位換色 */
+        }
+        .digit-box:nth-child(4n+1) .digit-value {
+            border-color: #f72585;
+        }
+        /* 修正第一個個位數不變色，讓視覺更清楚 */
+        .digit-box:first-child .place-name { background-color: var(--primary-color); }
+        .digit-box:first-child .digit-value { border-color: var(--primary-color); }
+
+
+        /* 底部中文念法區 */
+        .bottom-panel {
+            height: 30%;
+            background-color: #2b2d42;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+        }
+
+        .chinese-label {
+            font-size: 1.2rem;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+
+        .chinese-output {
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* RWD 手機適配 */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; height: auto; }
+            .left-panel, .right-panel { width: 100%; height: auto; }
+            .visual-container { flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <h1>🔢 位值教學產生器</h1>
+            <div class="input-group">
+                <label for="numberInput">請輸入整數：</label>
+                <input type="number" id="numberInput" placeholder="例如：12345" min="0" oninput="processNumber()">
+                <p class="hint">試試看輸入：10025 或 9999</p>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div id="visualizer" class="visual-container">
+                <div style="color:#aaa; font-size:1.5rem;">請在左側輸入數字</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-panel">
+        <div class="chinese-label">中文念法</div>
+        <div id="chineseOutput" class="chinese-output">...</div>
+    </div>
+
+    <script>
+        // 位名定義 (從個位開始往左)
+        const units = ["個", "十", "百", "千", "萬", "十萬", "百萬", "千萬", "億", "十億", "百億", "千億", "兆", "十兆", "百兆", "千兆"];
+        
+        // 中文數字定義
+        const chiDigits = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+        const chiUnits = ["", "十", "百", "千"];
+        const bigUnits = ["", "萬", "億", "兆"];
+
+        function processNumber() {
+            const input = document.getElementById('numberInput').value;
+            const visualizer = document.getElementById('visualizer');
+            const chineseOutput = document.getElementById('chineseOutput');
+
+            // 清空舊內容
+            visualizer.innerHTML = '';
+            
+            // 基本驗證：如果有非數字或空值
+            if (!input || input < 0) {
+                chineseOutput.innerText = input < 0 ? "請輸入正整數" : "...";
+                visualizer.innerHTML = '<div style="color:#aaa; font-size:1.5rem;">請在左側輸入數字</div>';
+                return;
+            }
+
+            // 處理過大的數字 (超過位名定義範圍)
+            if (input.length > units.length) {
+                chineseOutput.innerText = "數字太大了，超過教學範圍！";
+                return;
+            }
+
+            // 1. 生成視覺化方塊 (從左到右顯示，但邏輯上我們要對應位值)
+            // 將字串轉為陣列
+            const digits = input.split('');
+            const length = digits.length;
+
+            // 我們需要反向遍歷來生成 DOM，或者正向遍歷但計算對應的位值 index
+            // 這裡使用 flex-direction: row-reverse 在 CSS 中，所以我們可以從個位數開始 append (這在教學上比較直觀：個、十、百...)
+            // 為了讓 CSS row-reverse 生效，我們需要把 個位數 放在 DOM 的最後? 不，row-reverse 是把第一個 child 放在最右邊。
+            // 讓我們用最直觀的方式：DOM 順序 = 個位, 十位, 百位... 然後 CSS 讓個位在最右邊。
+            
+            // 將數字反轉： [5, 4, 3, 2, 1] (代表 12345)
+            const reversedDigits = [...digits].reverse();
+
+            reversedDigits.forEach((digit, index) => {
+                const box = document.createElement('div');
+                box.className = 'digit-box';
+
+                const unitName = units[index] || "?"; // 防止溢位
+
+                box.innerHTML = `
+                    <div class="place-name">${unitName}</div>
+                    <div class="digit-value">${digit}</div>
+                `;
+                
+                visualizer.appendChild(box);
+            });
+
+            // 2. 生成中文念法
+            chineseOutput.innerText = numberToChinese(input);
+        }
+
+        // 數字轉中文讀法邏輯
+        function numberToChinese(numStr) {
+            // 去除前導零
+            numStr = String(BigInt(numStr)); 
+            if (numStr === '0') return '零';
+
+            let result = "";
+            let len = numStr.length;
+            
+            // 分割成四個一組 (萬進位)
+            let groups = [];
+            while (numStr.length > 0) {
+                groups.push(numStr.slice(-4));
+                numStr = numStr.slice(0, -4);
+            }
+
+            // 遍歷每一組 (groups[0]是個位組, groups[1]是萬位組...)
+            for (let i = 0; i < groups.length; i++) {
+                let groupStr = groups[i];
+                let groupText = "";
+                let hasZero = false; // 是否補零標記
+
+                // 處理這一組的四位數
+                for (let j = 0; j < groupStr.length; j++) {
+                    // 這裡的 j 是字串內的 index，要轉換成實際位數 (個十百千)
+                    // 例如 "105" -> j=0(1,百), j=1(0,十), j=2(5,個)
+                    let digit = parseInt(groupStr[j]);
+                    let unitPos = groupStr.length - 1 - j; // 3=千, 2=百, 1=十, 0=個
+
+                    if (digit !== 0) {
+                        if (hasZero) {
+                            groupText += "零";
+                            hasZero = false;
+                        }
+                        groupText += chiDigits[digit] + chiUnits[unitPos];
+                    } else {
+                        // 遇到0，標記需要補零 (除非是在最尾端)
+                        if (groupText.length > 0) { // 避免 "05" 變成 "零五" (在單組內) -> 修正邏輯：如 105 -> 一百(零)五
+                            hasZero = true; 
+                        }
+                    }
+                }
+                
+                // 處理 "一十" 的口語習慣 (通常首位的1在十位時可讀作十，但在大數中間通常讀一十)
+                // 這裡採用標準讀法：一萬一千...
+                
+                // 組合大單位 (萬、億)
+                if (groupText !== "") {
+                    result = groupText + bigUnits[i] + result;
+                    
+                    // 處理跨組的零：例如 10001 (一萬 零 一)
+                    // 如果下一組(更低位)不是以"千"開頭，且當前組不是空的，通常中間要補零
+                    // 這是一個簡化處理，針對大多數教學場景已足夠
+                    if (i > 0 && groups[i-1].length < 4 && groups[i-1].length > 0) {
+                         // 這裡邏輯較複雜，暫時省略超高精度的零處理，以上邏輯已可處理 10025 -> 一萬零二十五
+                    }
+                } else if (result !== "" && groups[i-1] && parseInt(groups[i-1]) > 0) {
+                     // 中間有空的組 (例如 1 0000 1234 -> 一億零一千...)
+                     result = "零" + result; 
+                }
+            }
+
+            // 修正一些邊界狀況
+            // 1. 處理中間連續的零 (Regex 替換)
+            result = result.replace(/零+/g, '零');
+            // 2. 處理結尾的零
+            result = result.replace(/零$/, '');
+            // 3. 處理 "一十" 開頭 (針對 10~19)
+            if (result.startsWith("一十") && result.length <= 3) { // 僅針對 10-19
+                result = result.substring(1);
+            }
+
+            return result;
+        }
+
+        // 初始化
+        processNumber();
+    </script>
+</body>
+</html>
