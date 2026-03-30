@@ -3,338 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>因數雙模探索器</title>
+    <title>因數與倍數宇宙</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 20px;
-            touch-action: manipulation;
-        }
-        h1 { color: #333; margin-bottom: 20px; }
-
-        /* 頂部模式切換開關 */
-        .mode-toggle {
-            display: inline-flex;
-            background: #e0e0e0;
-            border-radius: 30px;
-            padding: 5px;
-            margin-bottom: 25px;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .mode-btn {
-            padding: 10px 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            background: transparent;
-            color: #777;
-            transition: 0.3s;
-        }
-        .mode-btn.active {
-            background: #4CAF50;
-            color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        /* 共同容器樣式 */
-        .container {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            max-width: 650px;
-            margin: 0 auto;
-        }
+        /* ================= 基礎設定 ================= */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f0f4f8; margin: 0; padding: 15px; touch-action: manipulation; color: #333; }
+        h1 { margin-bottom: 15px; color: #2c3e50; }
         .hidden { display: none !important; }
 
-        /* ================= 教學模式樣式 ================= */
-        .control-group { margin: 15px 0; font-size: 1.2rem; font-weight: bold; color: #555;}
-        input[type="number"] { font-size: 1.5rem; width: 80px; text-align: center; border: 2px solid #ccc; border-radius: 8px; margin-left: 10px; }
-        input[type="range"] { width: 100%; margin: 20px 0; height: 40px; cursor: pointer; }
+        /* ================= 導覽列與標籤 ================= */
+        .nav-container { margin-bottom: 20px; }
+        .level-1-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .tab-btn-l1 { padding: 12px 30px; font-size: 1.4rem; font-weight: bold; border: none; border-radius: 30px; cursor: pointer; background: #e2e8f0; color: #64748b; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .tab-btn-l1[data-active="true"] { background: #3b82f6; color: white; box-shadow: 0 4px 10px rgba(59,130,246,0.4); transform: translateY(-2px); }
         
-        .grid-display {
-            display: flex; justify-content: center; overflow-x: auto; padding: 20px 0; min-height: 200px;
-        }
-        #teachGrid { transition: all 0.3s ease; }
-        .block {
-            width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: bold; font-size: 1.1rem; box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
-        }
-        .perfect { background-color: #4CAF50; border: 2px solid #388E3C; } 
-        .imperfect-main { background-color: #2196F3; border: 2px solid #1976D2; }
-        .imperfect-remainder { background-color: #F44336; border: 2px solid #D32F2F; } 
-        .ghost-block { background-color: transparent; border: 2px dashed #B0BEC5; color: #90A4AE; box-shadow: none; }
-        
-        .msg-box { font-size: 1.3rem; font-weight: bold; padding: 15px; border-radius: 10px; margin-top: 15px; line-height: 1.5; }
-        .msg-success { background: #E8F5E9; color: #2E7D32; }
-        .msg-error { background: #FFF3E0; color: #E65100; }
-        .math-eq { font-family: monospace; font-size: 1.6rem; background: rgba(255,255,255,0.6); padding: 5px 10px; border-radius: 8px; display: inline-block; margin-top: 5px; }
+        .level-2-tabs { display: flex; justify-content: center; gap: 15px; }
+        .tab-btn-l2 { padding: 8px 20px; font-size: 1.1rem; font-weight: bold; border: 2px solid transparent; border-radius: 20px; cursor: pointer; background: transparent; color: #718096; transition: 0.2s; }
+        .tab-btn-l2[data-active="true"] { background: #cbd5e1; color: #1e293b; border-color: #94a3b8; }
 
-        /* ================= 遊戲模式樣式 ================= */
-        .game-header { background: #34495e; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-        .game-title { font-size: 1.6rem; color: #f1c40f; margin: 0 0 10px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);}
+        /* ================= 共同容器與控制面板 ================= */
+        .view-container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 650px; margin: 0 auto; min-height: 450px;}
+        .control-group { margin: 15px 0; font-size: 1.2rem; font-weight: bold; color: #475569; }
+        input[type="number"] { font-size: 1.4rem; width: 70px; text-align: center; border: 2px solid #cbd5e1; border-radius: 8px; margin: 0 10px; }
+        input[type="range"] { width: 100%; margin: 15px 0; height: 35px; cursor: pointer; }
+        
+        .msg-box { font-size: 1.2rem; font-weight: bold; padding: 15px; border-radius: 10px; margin-top: 15px; line-height: 1.5; }
+        .msg-success { background: #dcfce7; color: #166534; }
+        .msg-error { background: #ffedd5; color: #9a3412; }
+        .msg-info { background: #e0e7ff; color: #3730a3; }
+        .math-eq { font-family: monospace; font-size: 1.5rem; background: rgba(255,255,255,0.7); padding: 4px 8px; border-radius: 6px; display: inline-block; margin-top: 5px; }
+        .btn-action { background: #f59e0b; color: white; border: none; padding: 10px 25px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 #d97706; margin-top: 10px;}
+        .btn-action:active { transform: translateY(4px); box-shadow: 0 0 0 #d97706; }
+
+        /* ================= 視覺化方塊 (教學模式) ================= */
+        .grid-display { display: flex; justify-content: center; overflow-x: auto; padding: 15px 0; min-height: 180px; }
+        .block { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.1rem; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+        /* 因數顏色 */
+        .f-perfect { background-color: #22c55e; border: 2px solid #16a34a; } 
+        .f-main { background-color: #3b82f6; border: 2px solid #2563eb; }
+        .f-rem { background-color: #ef4444; border: 2px solid #dc2626; } 
+        .f-ghost { background-color: transparent; border: 2px dashed #cbd5e1; color: #94a3b8; box-shadow: none; font-size: 0.9rem; }
+        /* 倍數顏色 */
+        .m-block { background-color: #8b5cf6; border: 2px solid #7c3aed; }
+
+        /* ================= 遊戲模式網格 ================= */
+        .game-header { background: #1e293b; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .game-title { font-size: 1.5rem; color: #fde047; margin: 0 0 10px 0; }
         .game-stats { display: flex; justify-content: space-around; font-size: 1.2rem; font-weight: bold; }
         
-        .number-board {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .num-btn {
-            aspect-ratio: 1;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 10px;
-            background: #ecf0f1;
-            color: #2c3e50;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #bdc3c7;
-            transition: 0.1s;
-        }
-        .num-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 #bdc3c7; }
-        .num-btn:disabled { cursor: not-allowed; }
+        .game-board { display: grid; gap: 8px; margin-bottom: 15px; justify-content: center;}
+        /* 因數遊戲：動態欄數 */
+        .board-factor { grid-template-columns: repeat(auto-fit, minmax(55px, 1fr)); width: 100%;}
+        /* 倍數遊戲：固定 10x10 */
+        .board-multiple { grid-template-columns: repeat(10, 1fr); max-width: 500px; margin: 0 auto 15px auto;}
         
-        .num-correct { background: #2ecc71 !important; color: white !important; box-shadow: 0 2px 0 #27ae60 !important; transform: translateY(2px); }
-        .num-wrong { background: #e74c3c !important; color: white !important; box-shadow: 0 2px 0 #c0392b !important; transform: translateY(2px); animation: shake 0.3s; }
-        .num-missed { background: #f1c40f !important; color: #2c3e50 !important; box-shadow: 0 2px 0 #f39c12 !important; border: 2px dashed #d35400; }
-
-        @keyframes shake { 0%, 100% { transform: translateX(0) translateY(2px); } 25% { transform: translateX(-5px) translateY(2px); } 75% { transform: translateX(5px) translateY(2px); } }
-
-        .btn-action { background: #FF9800; color: white; border: none; padding: 12px 25px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 #F57C00; }
-        .btn-action:active { transform: translateY(4px); box-shadow: 0 0 0 #F57C00; }
+        .num-btn { aspect-ratio: 1; font-size: 1.3rem; font-weight: bold; border: none; border-radius: 8px; background: #e2e8f0; color: #334155; cursor: pointer; box-shadow: 0 4px 0 #cbd5e1; display: flex; align-items: center; justify-content: center; user-select: none; }
+        .num-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 #cbd5e1; }
+        .num-btn:disabled { cursor: default; }
         
-        .game-msg { display: none; padding: 15px; border-radius: 10px; font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; }
+        .num-correct { background: #22c55e !important; color: white !important; box-shadow: 0 2px 0 #16a34a !important; transform: translateY(2px); }
+        .num-wrong { background: #ef4444 !important; color: white !important; box-shadow: 0 2px 0 #dc2626 !important; transform: translateY(2px); animation: shake 0.3s; }
+        .num-missed { background: #fde047 !important; color: #451a03 !important; box-shadow: 0 2px 0 #eab308 !important; border: 2px dashed #ca8a04; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0) translateY(2px); } 25% { transform: translateX(-4px) translateY(2px); } 75% { transform: translateX(4px) translateY(2px); } }
     </style>
 </head>
 <body>
 
-    <h1>🔍 因數探索器</h1>
+    <h1>🚀 因數與倍數宇宙</h1>
 
-    <div class="mode-toggle">
-        <button id="btnModeTeach" class="mode-btn active" onclick="setMode('teach')">教學模式</button>
-        <button id="btnModeGame" class="mode-btn" onclick="setMode('game')">遊戲模式</button>
-    </div>
-
-    <div id="teachContainer" class="container">
-        <div class="control-group">
-            <label>被除數 (目標數字)： <input type="number" id="teachTarget" value="12" min="1" max="60"></label>
+    <div class="nav-container">
+        <div class="level-1-tabs">
+            <button class="tab-btn-l1" data-concept="factor" data-active="true" onclick="setConcept('factor')">探索因數</button>
+            <button class="tab-btn-l1" data-concept="multiple" data-active="false" onclick="setConcept('multiple')">探索倍數</button>
         </div>
-        <div class="control-group">
-            <label>除數 (試著排成 <span id="teachRowVal" style="color: #2196F3; font-size: 1.5rem;">3</span> 行)</label>
-            <input type="range" id="teachSlider" min="1" max="12" value="3">
-        </div>
-
-        <div class="grid-display">
-            <div id="teachGrid"></div>
-        </div>
-
-        <div id="teachMsg" class="msg-box msg-success">
-            可以排成完美的長方形！<br><span class="math-eq">12 ÷ 3 = 4</span>
+        <div class="level-2-tabs">
+            <button class="tab-btn-l2" data-mode="teach" data-active="true" onclick="setMode('teach')">👨‍🏫 教學模式</button>
+            <button class="tab-btn-l2" data-mode="game" data-active="false" onclick="setMode('game')">🎮 遊戲模式</button>
         </div>
     </div>
 
-    <div id="gameContainer" class="container hidden">
+    <div id="view-factor-teach" class="view-container">
+        <div class="control-group">
+            <label>被除數 (目標)： <input type="number" id="ftTarget" value="12" min="1" max="100"></label>
+        </div>
+        <div class="control-group">
+            <label>除數 (排成 <span id="ftRowVal" style="color: #3b82f6;">3</span> 行)</label>
+            <input type="range" id="ftSlider" min="1" max="12" value="3">
+        </div>
+        <div class="grid-display"><div id="ftGrid" style="transition: 0.3s;"></div></div>
+        <div id="ftMsg" class="msg-box msg-success">準備開始！</div>
+    </div>
+
+    <div id="view-factor-game" class="view-container hidden">
         <div class="game-header">
-            <h2 class="game-title" id="gameTaskTitle">任務：找出 ? 的所有因數</h2>
+            <h2 class="game-title" id="fgTitle">任務：找出 ? 的所有因數</h2>
             <div class="game-stats">
-                <div>愛心：<span id="gameLives">❤️❤️❤️</span></div>
-                <div>進度：<span id="gameFound">0</span> / <span id="gameTotal">0</span></div>
+                <div>愛心：<span id="fgLives">❤️❤️❤️</span></div>
+                <div>進度：<span id="fgFound">0</span> / <span id="fgTotal">0</span></div>
             </div>
         </div>
+        <div id="fgEndMsg" class="msg-box hidden" style="margin-bottom: 15px;"></div>
+        <div class="game-board board-factor" id="fgBoard"></div>
+        <button class="btn-action" onclick="initFactorGame()">換一題挑戰</button>
+    </div>
 
-        <div id="gameEndMsg" class="game-msg"></div>
+    <div id="view-multiple-teach" class="view-container hidden">
+        <div class="control-group">
+            <label>被乘數 (基準)： <input type="number" id="mtBase" value="4" min="1" max="20"></label>
+        </div>
+        <div class="control-group">
+            <label>乘數 (變成 <span id="mtTimesVal" style="color: #8b5cf6;">3</span> 倍)</label>
+            <input type="range" id="mtSlider" min="1" max="20" value="3">
+        </div>
+        <div class="grid-display"><div id="mtGrid" style="transition: 0.3s;"></div></div>
+        <div id="mtMsg" class="msg-box msg-info">準備開始！</div>
+    </div>
 
-        <div class="number-board" id="gameBoard"></div>
-
-        <button class="btn-action" onclick="initGame()">換一題挑戰</button>
+    <div id="view-multiple-game" class="view-container hidden">
+        <div class="game-header">
+            <h2 class="game-title" id="mgTitle">任務：找出所有 ? 的倍數</h2>
+            <div class="game-stats">
+                <div>愛心：<span id="mgLives">❤️❤️❤️</span></div>
+                <div>進度：<span id="mgFound">0</span> / <span id="mgTotal">0</span></div>
+            </div>
+        </div>
+        <div id="mgEndMsg" class="msg-box hidden" style="margin-bottom: 15px;"></div>
+        <div class="game-board board-multiple" id="mgBoard"></div>
+        <button class="btn-action" onclick="initMultipleGame()">換一題挑戰</button>
     </div>
 
     <script>
-        // --- 全局模式切換 ---
-        function setMode(mode) {
-            const btnTeach = document.getElementById('btnModeTeach');
-            const btnGame = document.getElementById('btnModeGame');
-            const contTeach = document.getElementById('teachContainer');
-            const contGame = document.getElementById('gameContainer');
+        // ================= 全局狀態與導覽邏輯 =================
+        let currentConcept = 'factor'; // 'factor' 或 'multiple'
+        let currentMode = 'teach';     // 'teach' 或 'game'
 
-            if (mode === 'teach') {
-                btnTeach.classList.add('active');
-                btnGame.classList.remove('active');
-                contTeach.classList.remove('hidden');
-                contGame.classList.add('hidden');
-                updateTeachGrid();
-            } else {
-                btnGame.classList.add('active');
-                btnTeach.classList.remove('active');
-                contGame.classList.remove('hidden');
-                contTeach.classList.add('hidden');
-                initGame();
-            }
+        function setConcept(concept) {
+            currentConcept = concept;
+            document.querySelectorAll('.tab-btn-l1').forEach(btn => btn.dataset.active = (btn.dataset.concept === concept));
+            updateView();
         }
 
-        // ================= 教學模式邏輯 =================
-        const tTarget = document.getElementById('teachTarget');
-        const tSlider = document.getElementById('teachSlider');
-        const tRowVal = document.getElementById('teachRowVal');
-        const tGrid = document.getElementById('teachGrid');
-        const tMsg = document.getElementById('teachMsg');
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.tab-btn-l2').forEach(btn => btn.dataset.active = (btn.dataset.mode === mode));
+            updateView();
+        }
 
-        function updateTeachGrid() {
-            let total = parseInt(tTarget.value) || 1;
-            let rows = parseInt(tSlider.value) || 1;
-            if (total > 100) { total = 100; tTarget.value = 100; }
-            tSlider.max = total;
-            if (rows > total) { rows = total; tSlider.value = total; }
+        function updateView() {
+            // 隱藏所有視圖
+            document.querySelectorAll('.view-container').forEach(el => el.classList.add('hidden'));
+            // 顯示對應視圖
+            const targetId = `view-${currentConcept}-${currentMode}`;
+            document.getElementById(targetId).classList.remove('hidden');
+
+            // 觸發對應的初始化或更新函數
+            if (currentConcept === 'factor' && currentMode === 'teach') renderFactorTeach();
+            if (currentConcept === 'factor' && currentMode === 'game') initFactorGame();
+            if (currentConcept === 'multiple' && currentMode === 'teach') renderMultipleTeach();
+            if (currentConcept === 'multiple' && currentMode === 'game') initMultipleGame();
+        }
+
+        // ================= 1. 因數教學邏輯 =================
+        const ftTarget = document.getElementById('ftTarget');
+        const ftSlider = document.getElementById('ftSlider');
+        const ftRowVal = document.getElementById('ftRowVal');
+        const ftGrid = document.getElementById('ftGrid');
+        const ftMsg = document.getElementById('ftMsg');
+
+        function renderFactorTeach() {
+            let total = parseInt(ftTarget.value) || 1;
+            let rows = parseInt(ftSlider.value) || 1;
+            if (total > 100) { total = 100; ftTarget.value = 100; }
+            ftSlider.max = total;
+            if (rows > total) { rows = total; ftSlider.value = total; }
             
-            tRowVal.textContent = rows;
-            tGrid.innerHTML = '';
-            
-            tGrid.style.display = 'grid';
-            tGrid.style.gridTemplateRows = `repeat(${rows}, 40px)`;
-            tGrid.style.gridAutoFlow = 'column';
-            tGrid.style.gap = '6px';
+            ftRowVal.textContent = rows;
+            ftGrid.innerHTML = '';
+            ftGrid.style.display = 'grid';
+            ftGrid.style.gridTemplateRows = `repeat(${rows}, 40px)`;
+            ftGrid.style.gridAutoFlow = 'column';
+            ftGrid.style.gap = '6px';
 
             const isFactor = (total % rows === 0);
             const cols = Math.floor(total / rows);
             const rem = total % rows;
-            const missing = isFactor ? 0 : rows - rem;
 
             for (let i = 0; i < total; i++) {
                 const b = document.createElement('div');
-                b.className = 'block ' + (isFactor ? 'perfect' : (i < cols * rows ? 'imperfect-main' : 'imperfect-remainder'));
+                b.className = 'block ' + (isFactor ? 'f-perfect' : (i < cols * rows ? 'f-main' : 'f-rem'));
                 b.textContent = i + 1;
-                tGrid.appendChild(b);
+                ftGrid.appendChild(b);
             }
             if (!isFactor) {
-                for (let i = 0; i < missing; i++) {
+                for (let i = 0; i < (rows - rem); i++) {
                     const gb = document.createElement('div');
-                    gb.className = 'block ghost-block';
+                    gb.className = 'block f-ghost';
                     gb.textContent = '缺';
-                    tGrid.appendChild(gb);
+                    ftGrid.appendChild(gb);
                 }
             }
 
             if (isFactor) {
-                tMsg.className = 'msg-box msg-success';
-                tMsg.innerHTML = `完美長方形！沒有餘數，所以 <b>${rows} 是 ${total} 的因數</b>。<br><span class="math-eq">${total} ÷ ${rows} = ${cols}</span>`;
+                ftMsg.className = 'msg-box msg-success';
+                ftMsg.innerHTML = `完美長方形！沒有餘數。<br><b>${rows} 是 ${total} 的因數</b><br><span class="math-eq">${total} ÷ ${rows} = ${cols}</span>`;
             } else {
-                tMsg.className = 'msg-box msg-error';
-                tMsg.innerHTML = `排不滿長方形，多出 ${rem} 個。有餘數，所以 <b>${rows} 不是 ${total} 的因數</b>。<br><span class="math-eq">${total} ÷ ${rows} = ${cols} ... ${rem}</span>`;
+                ftMsg.className = 'msg-box msg-error';
+                ftMsg.innerHTML = `排不滿，多出 ${rem} 個。<br><b>${rows} 不是 ${total} 的因數</b><br><span class="math-eq">${total} ÷ ${rows} = ${cols} ... ${rem}</span>`;
             }
         }
+        ftTarget.addEventListener('input', renderFactorTeach);
+        ftSlider.addEventListener('input', renderFactorTeach);
 
-        tTarget.addEventListener('input', updateTeachGrid);
-        tSlider.addEventListener('input', updateTeachGrid);
+        // ================= 2. 因數遊戲邏輯 =================
+        let fgTarget = 0, fgFactors = [], fgFound = 0, fgLives = 3, fgOver = false;
+        function initFactorGame() {
+            const board = document.getElementById('fgBoard');
+            const msg = document.getElementById('fgEndMsg');
+            board.innerHTML = ''; msg.classList.add('hidden');
+            fgFound = 0; fgLives = 3; fgOver = false;
 
-        // ================= 遊戲模式邏輯 =================
-        const gTitle = document.getElementById('gameTaskTitle');
-        const gLivesUI = document.getElementById('gameLives');
-        const gFoundUI = document.getElementById('gameFound');
-        const gTotalUI = document.getElementById('gameTotal');
-        const gBoard = document.getElementById('gameBoard');
-        const gEndMsg = document.getElementById('gameEndMsg');
+            const pool = [12, 16, 18, 20, 24, 30, 36, 40];
+            fgTarget = pool[Math.floor(Math.random() * pool.length)];
+            document.getElementById('fgTitle').innerHTML = `任務：找出 <span style="font-size: 2rem;">${fgTarget}</span> 的所有因數`;
 
-        let gTarget = 0;
-        let gFactors = [];
-        let gFoundCount = 0;
-        let gLives = 3;
-        let gIsOver = false;
+            fgFactors = [];
+            for (let i = 1; i <= fgTarget; i++) { if (fgTarget % i === 0) fgFactors.push(i); }
+            document.getElementById('fgTotal').textContent = fgFactors.length;
+            updateFgUI();
 
-        function initGame() {
-            gEndMsg.style.display = 'none';
-            gBoard.innerHTML = '';
-            gLives = 3;
-            gFoundCount = 0;
-            gIsOver = false;
-            updateGameUI();
-
-            // 題庫：適合練習因數的數字
-            const pool = [12, 16, 18, 20, 24, 28, 30, 32, 36, 40];
-            gTarget = pool[Math.floor(Math.random() * pool.length)];
-            gTitle.innerHTML = `任務：找出 <span style="font-size: 2rem;">${gTarget}</span> 的所有因數`;
-
-            // 計算所有因數
-            gFactors = [];
-            for (let i = 1; i <= gTarget; i++) {
-                if (gTarget % i === 0) gFactors.push(i);
-            }
-            gTotalUI.textContent = gFactors.length;
-
-            // 產生 1 到 目標數字 的按鈕面板
-            for (let i = 1; i <= gTarget; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'num-btn';
-                btn.textContent = i;
-                btn.onclick = () => handleGameClick(btn, i);
-                gBoard.appendChild(btn);
-            }
-        }
-
-        function handleGameClick(btn, num) {
-            if (gIsOver || btn.disabled) return;
-            btn.disabled = true;
-
-            if (gTarget % num === 0) {
-                // 答對了：是因數
-                btn.classList.add('num-correct');
-                gFoundCount++;
-                updateGameUI();
-                
-                if (gFoundCount === gFactors.length) {
-                    endGame(true);
-                }
-            } else {
-                // 答錯了：不是因數
-                btn.classList.add('num-wrong');
-                gLives--;
-                updateGameUI();
-                
-                if (gLives <= 0) {
-                    endGame(false);
-                }
-            }
-        }
-
-        function updateGameUI() {
-            gLivesUI.textContent = '❤️'.repeat(gLives) + '💔'.repeat(3 - gLives);
-            gFoundUI.textContent = gFoundCount;
-        }
-
-        function endGame(isWin) {
-            gIsOver = true;
-            gEndMsg.style.display = 'block';
-            
-            // 鎖定所有按鈕
-            const btns = gBoard.querySelectorAll('.num-btn');
-            btns.forEach(b => b.disabled = true);
-
-            if (isWin) {
-                gEndMsg.className = 'game-msg msg-success';
-                gEndMsg.textContent = '🎉 挑戰成功！你找齊了所有因數！';
-            } else {
-                gEndMsg.className = 'game-msg msg-error';
-                gEndMsg.textContent = '💥 挑戰失敗，愛心扣光了！黃色的數字是你沒找出來的因數喔。';
-                
-                // 失敗時，提示漏掉的因數
-                btns.forEach((b, idx) => {
-                    let num = idx + 1;
-                    if (gTarget % num === 0 && !b.classList.contains('num-correct')) {
-                        b.classList.add('num-missed');
+            for (let i = 1; i <= fgTarget; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'num-btn'; btn.textContent = i;
+                btn.onclick = () => {
+                    if (fgOver || btn.classList.contains('disabled')) return;
+                    btn.classList.add('disabled');
+                    if (fgTarget % i === 0) {
+                        btn.classList.add('num-correct'); fgFound++; updateFgUI();
+                        if (fgFound === fgFactors.length) endFg(true);
+                    } else {
+                        btn.classList.add('num-wrong'); fgLives--; updateFgUI();
+                        if (fgLives <= 0) endFg(false);
                     }
+                };
+                board.appendChild(btn);
+            }
+        }
+        function updateFgUI() {
+            document.getElementById('fgLives').textContent = '❤️'.repeat(fgLives) + '💔'.repeat(3 - fgLives);
+            document.getElementById('fgFound').textContent = fgFound;
+        }
+        function endFg(isWin) {
+            fgOver = true;
+            const msg = document.getElementById('fgEndMsg');
+            msg.classList.remove('hidden');
+            document.querySelectorAll('#fgBoard .num-btn').forEach(b => b.classList.add('disabled'));
+            if (isWin) {
+                msg.className = 'msg-box msg-success'; msg.textContent = '🎉 挑戰成功！找齊所有因數了！';
+            } else {
+                msg.className = 'msg-box msg-error'; msg.textContent = '💥 失敗！黃色虛線框是漏掉的因數喔。';
+                document.querySelectorAll('#fgBoard .num-btn').forEach((b, idx) => {
+                    if (fgTarget % (idx + 1) === 0 && !b.classList.contains('num-correct')) b.classList.add('num-missed');
                 });
             }
         }
 
-        // 初始化執行
+        // ================= 3. 倍數教學邏輯 =================
+        const mtBase = document.getElementById('mtBase');
+        const mtSlider = document.getElementById('mtSlider');
+        function renderMultipleTeach() {
+            let base = parseInt(mtBase.value) || 1;
+            let times = parseInt(mtSlider.value) || 1;
+            if (base > 20) { base = 20; mtBase.value = 20; }
+            document.getElementById('mtTimesVal').textContent = times;
+            
+            const grid = document.getElementById('mtGrid');
+            grid.innerHTML = '';
+            grid.style.display = 'grid';
+            grid.style.gridTemplateColumns = `repeat(${base}, 40px)`;
+            grid.style.gridAutoFlow = 'row';
+            grid.style.gap = '6px';
+
+            let total = base * times;
+            for (let i = 0; i < total; i++) {
+                const b = document.createElement('div');
+                b.className = 'block m-block'; b.textContent = i + 1;
+                grid.appendChild(b);
+            }
+
+            document.getElementById('mtMsg').innerHTML = `每一排有 ${base} 個，排了 ${times} 排。<br><b>${total} 是 ${base} 的倍數</b><br><span class="math-eq">${base} × ${times} = ${total}</span>`;
+        }
+        mtBase.addEventListener('input', renderMultipleTeach);
+        mtSlider.addEventListener('input', renderMultipleTeach);
+
+        // ================= 4. 倍數遊戲 (掃雷) 邏輯 =================
+        let mgBase = 0, mgTotal = 0, mgFound = 0, mgLives = 3, mgOver = false;
+        function initMultipleGame() {
+            const board = document.getElementById('mgBoard');
+            const msg = document.getElementById('mgEndMsg');
+            board.innerHTML = ''; msg.classList.add('hidden');
+            mgFound = 0; mgLives = 3; mgOver = false;
+
+            mgBase = Math.floor(Math.random() * 8) + 2; // 2~9
+            document.getElementById('mgTitle').innerHTML = `任務：在100內找出 <span style="font-size: 2rem;">${mgBase}</span> 的倍數`;
+            
+            mgTotal = Math.floor(100 / mgBase);
+            document.getElementById('mgTotal').textContent = mgTotal;
+            updateMgUI();
+
+            for (let i = 1; i <= 100; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'num-btn'; btn.textContent = i;
+                btn.onclick = () => {
+                    if (mgOver || btn.classList.contains('disabled')) return;
+                    btn.classList.add('disabled');
+                    if (i % mgBase === 0) {
+                        btn.classList.add('num-correct'); mgFound++; updateMgUI();
+                        if (mgFound === mgTotal) endMg(true);
+                    } else {
+                        btn.classList.add('num-wrong'); btn.textContent = '💣'; mgLives--; updateMgUI();
+                        if (mgLives <= 0) endMg(false);
+                    }
+                };
+                board.appendChild(btn);
+            }
+        }
+        function updateMgUI() {
+            document.getElementById('mgLives').textContent = '❤️'.repeat(mgLives) + '💔'.repeat(3 - mgLives);
+            document.getElementById('mgFound').textContent = mgFound;
+        }
+        function endMg(isWin) {
+            mgOver = true;
+            const msg = document.getElementById('mgEndMsg');
+            msg.classList.remove('hidden');
+            document.querySelectorAll('#mgBoard .num-btn').forEach(b => b.classList.add('disabled'));
+            if (isWin) {
+                msg.className = 'msg-box msg-success'; msg.textContent = '🎉 完美掃雷！找出所有倍數了！';
+            } else {
+                msg.className = 'msg-box msg-error'; msg.textContent = '💥 踩到地雷！黃色虛線框是漏掉的倍數。';
+                document.querySelectorAll('#mgBoard .num-btn').forEach((b, idx) => {
+                    if ((idx + 1) % mgBase === 0 && !b.classList.contains('num-correct')) b.classList.add('num-missed');
+                });
+            }
+        }
+
+        // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            updateTeachGrid();
+            updateView(); // 預設執行因數教學
         });
     </script>
 </body>
