@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>因數與倍數探索器</title>
+    <title>公因數與公倍數濾鏡</title>
     <style>
-        /* 基礎排版與平板友善設定 */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
@@ -16,458 +15,223 @@
         }
         h1 { color: #333; margin-bottom: 10px; }
         
-        /* 模式切換按鈕 */
-        .tab-container {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+        .tab-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
         .tab-btn {
-            padding: 12px 25px;
-            font-size: 1.3rem;
-            border: 2px solid transparent;
-            border-radius: 12px;
-            cursor: pointer;
-            background-color: #e0e0e0;
-            color: #555;
-            transition: all 0.3s ease;
-            position: relative;
-            font-weight: bold;
+            padding: 12px 25px; font-size: 1.3rem; border: 2px solid transparent;
+            border-radius: 12px; cursor: pointer; background-color: #e0e0e0; font-weight: bold;
         }
-        .tab-btn.active {
-            background-color: #4CAF50;
-            color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .tab-btn.active::after {
-            content: '✓';
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #FF9800;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            font-size: 14px;
-            line-height: 24px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        /* 控制面板 */
+        .tab-btn.active { background-color: #4CAF50; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        
         .controls {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            display: inline-block;
-            margin-bottom: 20px;
-            width: 90%;
-            max-width: 600px;
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: inline-block;
+            margin-bottom: 20px; width: 90%; max-width: 600px;
         }
-        .control-group { margin: 15px 0; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px;}
-        label { font-size: 1.2rem; font-weight: bold; color: #555; }
+        .input-group { display: flex; justify-content: center; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;}
+        
+        /* 兩個數字的專屬顏色標籤 */
+        .label-a { color: #1976D2; font-weight: bold; font-size: 1.2rem; }
+        .label-b { color: #E64A19; font-weight: bold; font-size: 1.2rem; }
         
         input[type="number"] {
-            font-size: 1.5rem;
-            width: 80px;
-            padding: 5px;
-            text-align: center;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-        }
-        input[type="number"]:disabled { background-color: #eeeeee; color: #888; }
-        
-        input[type="range"] {
-            width: 100%;
-            margin: 15px 0;
-            height: 40px;
-            cursor: pointer;
+            font-size: 1.5rem; width: 70px; padding: 5px; text-align: center;
+            border: 2px solid #ccc; border-radius: 8px; margin-left: 5px;
         }
 
-        /* 挑戰按鈕與介面設計 */
-        .btn-challenge {
-            background-color: #FF9800;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: 0.2s;
-        }
-        .btn-challenge:hover { background-color: #F57C00; transform: scale(1.05); }
-        .btn-exit { background-color: #9E9E9E; margin-top: 10px; }
-
-        .challenge-board {
-            background-color: #FFF8E1;
-            border: 2px dashed #FFB300;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-        .badges-container {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .badge {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-        .badge-found { background-color: #4CAF50; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-        .badge-missing { background-color: #e0e0e0; color: #9e9e9e; border: 2px dashed #bdbdbd; }
-        
-        .message {
-            font-size: 1.3rem;
-            font-weight: bold;
-            padding: 15px;
-            border-radius: 10px;
-            transition: 0.3s;
-            min-height: 30px;
-            line-height: 1.5;
-        }
-        .success { background-color: #E8F5E9; color: #2E7D32; }
-        .error { background-color: #FFF3E0; color: #E65100; }
-        .multiple-msg { background-color: #EDE7F6; color: #512DA8; }
-        .win-msg { background-color: #FFEB3B; color: #E65100; border: 2px solid #FF9800; animation: pop 0.5s ease-out; }
-        
-        @keyframes pop {
-            0% { transform: scale(0.9); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .math-equation {
-            display: block;
-            font-size: 1.8rem;
-            margin-top: 5px;
-            font-family: 'Courier New', Courier, monospace;
-            background: rgba(255,255,255,0.5);
-            padding: 5px;
-            border-radius: 8px;
-        }
-
-        /* 網格與方塊 */
-        .grid-wrapper {
-            overflow-x: auto;
-            padding: 20px;
+        /* 百數表網格設計 */
+        .chart-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            max-width: 600px;
+            margin: 0 auto;
             background: white;
-            border-radius: 15px;
+            padding: 15px;
+            border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
-        
-        #gridContainer { transition: all 0.3s ease; }
-        
-        .block {
-            width: 45px;
-            height: 45px;
-            border-radius: 8px;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        .cell {
+            aspect-ratio: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: bold;
             font-size: 1.1rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            font-weight: bold;
+            color: #ccc; /* 預設為淡色，不干擾視覺 */
+            border-radius: 6px;
+            background-color: #f9f9f9;
+            transition: all 0.3s ease;
         }
+
+        /* 顏色標記邏輯 */
+        .mark-a { background-color: #BBDEFB; color: #1565C0; border: 2px solid #90CAF9; } /* 數字A：淺藍 */
+        .mark-b { background-color: #FFCCBC; color: #D84315; border: 2px solid #FFAB91; } /* 數字B：淺橘 */
         
-        .perfect { background-color: #4CAF50; border: 2px solid #388E3C; } 
-        .imperfect-main { background-color: #2196F3; border: 2px solid #1976D2; }
-        .imperfect-remainder { background-color: #F44336; border: 2px solid #D32F2F; } 
-        .multiple-block { background-color: #9C27B0; border: 2px solid #7B1FA2; }
-        .ghost-block { background-color: transparent; border: 2px dashed #B0BEC5; box-shadow: none; color: #90A4AE; text-shadow: none; font-size: 0.9rem; }
-        
-        .hidden { display: none !important; }
+        /* 交集：公因/公倍數 (綠色 + 放大跳動效果) */
+        .mark-common {
+            background-color: #4CAF50; 
+            color: white; 
+            border: 3px solid #2E7D32;
+            transform: scale(1.1);
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            animation: pop 0.4s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* 結果文字區 */
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            background: #E8F5E9;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .highlight-common { color: #2E7D32; font-weight: bold; font-size: 1.4rem;}
     </style>
 </head>
 <body>
 
-    <h1>數學陣列探索器</h1>
+    <h1>公因數與公倍數濾鏡</h1>
 
     <div class="tab-container">
-        <button id="btnFactor" class="tab-btn active">尋找因數</button>
-        <button id="btnMultiple" class="tab-btn">創造倍數</button>
+        <button id="btnMultiple" class="tab-btn active">找公倍數</button>
+        <button id="btnFactor" class="tab-btn">找公因數</button>
     </div>
 
     <div class="controls">
-        <div id="panelFactor">
-            <div class="control-group">
-                <label for="factorTotal">被除數 (目標數字)：</label>
-                <input type="number" id="factorTotal" value="14" min="1" max="100">
-                <button id="btnStartChallenge" class="btn-challenge">🎲 給我一個挑戰</button>
-            </div>
-            
-            <div id="challengeBoard" class="challenge-board hidden">
-                <div style="font-size: 1.2rem; font-weight: bold; color: #E65100;">
-                    🏆 挑戰任務：找出 <span id="chTarget"></span> 的「所有」因數！
-                </div>
-                <div style="margin-top: 5px; color: #555;">
-                    目前進度：<span id="chFound">0</span> / <span id="chTotal">0</span>
-                </div>
-                <div id="badgesArea" class="badges-container"></div>
-                <button id="btnExitChallenge" class="btn-challenge btn-exit">放棄挑戰</button>
-            </div>
-
-            <div class="control-group" style="display: block;">
-                <label for="factorSlider">除數 (試著排成 <span id="factorRowsVal" style="color: #2196F3; font-size: 1.5rem;">4</span> 行)</label>
-                <input type="range" id="factorSlider" min="1" max="14" value="4">
-            </div>
+        <div class="input-group">
+            <div class="label-a">數字 A: <input type="number" id="numA" value="3" min="1" max="100"></div>
+            <div class="label-b">數字 B: <input type="number" id="numB" value="4" min="1" max="100"></div>
         </div>
-
-        <div id="panelMultiple" class="hidden">
-            <div class="control-group">
-                <label for="multipleBase">被乘數 (基準數字)：</label>
-                <input type="number" id="multipleBase" value="4" min="1" max="20">
-            </div>
-            <div class="control-group" style="display: block;">
-                <label for="multipleSlider">乘數 (變成 <span id="multipleTimesVal" style="color: #9C27B0; font-size: 1.5rem;">3</span> 倍)</label>
-                <input type="range" id="multipleSlider" min="1" max="20" value="3">
-            </div>
-        </div>
-
-        <div id="message" class="message success">準備開始探索！</div>
+        <div id="instruction" style="color: #666; font-size: 1.1rem;">正在尋找 3 和 4 的公倍數</div>
     </div>
 
-    <div class="grid-wrapper">
-        <div id="gridContainer"></div>
-    </div>
+    <div class="chart-container" id="chart"></div>
+
+    <div class="summary" id="summaryBox"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            let currentMode = 'factor';
+            let currentMode = 'multiple';
+            const chart = document.getElementById('chart');
+            const numAInput = document.getElementById('numA');
+            const numBInput = document.getElementById('numB');
+            const instruction = document.getElementById('instruction');
+            const summaryBox = document.getElementById('summaryBox');
             
-            // 挑戰模式狀態變數
-            let isChallengeMode = false;
-            let targetFactors = []; // 存放這題的所有因數
-            let foundFactors = new Set(); // 存放學生已經找到的因數
-
-            const btnFactor = document.getElementById('btnFactor');
             const btnMultiple = document.getElementById('btnMultiple');
-            const panelFactor = document.getElementById('panelFactor');
-            const panelMultiple = document.getElementById('panelMultiple');
-            
-            const factorTotal = document.getElementById('factorTotal');
-            const factorSlider = document.getElementById('factorSlider');
-            const factorRowsVal = document.getElementById('factorRowsVal');
-            
-            const multipleBase = document.getElementById('multipleBase');
-            const multipleSlider = document.getElementById('multipleSlider');
-            const multipleTimesVal = document.getElementById('multipleTimesVal');
-            
-            const gridContainer = document.getElementById('gridContainer');
-            const messageDisplay = document.getElementById('message');
+            const btnFactor = document.getElementById('btnFactor');
 
-            // 挑戰模式 UI 元素
-            const btnStartChallenge = document.getElementById('btnStartChallenge');
-            const btnExitChallenge = document.getElementById('btnExitChallenge');
-            const challengeBoard = document.getElementById('challengeBoard');
-            const badgesArea = document.getElementById('badgesArea');
-            const chTarget = document.getElementById('chTarget');
-            const chFound = document.getElementById('chFound');
-            const chTotal = document.getElementById('chTotal');
+            // 初始化建立 100 個格子
+            for (let i = 1; i <= 100; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.textContent = i;
+                cell.id = `cell-${i}`;
+                chart.appendChild(cell);
+            }
 
             function switchMode(mode) {
                 currentMode = mode;
-                if (mode === 'factor') {
-                    btnFactor.classList.add('active');
-                    btnMultiple.classList.remove('active');
-                    panelFactor.classList.remove('hidden');
-                    panelMultiple.classList.add('hidden');
-                } else {
+                if (mode === 'multiple') {
                     btnMultiple.classList.add('active');
                     btnFactor.classList.remove('active');
-                    panelMultiple.classList.remove('hidden');
-                    panelFactor.classList.add('hidden');
-                }
-                updateGrid();
-            }
-
-            btnFactor.addEventListener('click', () => switchMode('factor'));
-            btnMultiple.addEventListener('click', () => switchMode('multiple'));
-
-            // --- 挑戰模式邏輯 ---
-            function startChallenge() {
-                isChallengeMode = true;
-                // 精選適合國小生的數字題庫
-                const pool = [12, 16, 18, 20, 24, 28, 30, 32, 36, 40, 42];
-                const target = pool[Math.floor(Math.random() * pool.length)];
-                
-                // 計算所有的因數
-                targetFactors = [];
-                for (let i = 1; i <= target; i++) {
-                    if (target % i === 0) targetFactors.push(i);
-                }
-                
-                foundFactors.clear();
-                
-                // 鎖定 UI 並更新畫面
-                factorTotal.value = target;
-                factorTotal.disabled = true;
-                btnStartChallenge.classList.add('hidden');
-                challengeBoard.classList.remove('hidden');
-                chTarget.textContent = target;
-                chTotal.textContent = targetFactors.length;
-                
-                // 將滑桿重置到 1
-                factorSlider.value = 1;
-                
-                renderBadges();
-                updateGrid();
-            }
-
-            function exitChallenge() {
-                isChallengeMode = false;
-                factorTotal.disabled = false;
-                btnStartChallenge.classList.remove('hidden');
-                challengeBoard.classList.add('hidden');
-                updateGrid();
-            }
-
-            function renderBadges() {
-                badgesArea.innerHTML = '';
-                chFound.textContent = foundFactors.size;
-                
-                // 畫出所有的徽章空位
-                targetFactors.forEach(factor => {
-                    const badge = document.createElement('div');
-                    if (foundFactors.has(factor)) {
-                        badge.classList.add('badge', 'badge-found');
-                        badge.textContent = factor;
-                    } else {
-                        badge.classList.add('badge', 'badge-missing');
-                        badge.textContent = "?";
-                    }
-                    badgesArea.appendChild(badge);
-                });
-            }
-
-            btnStartChallenge.addEventListener('click', startChallenge);
-            btnExitChallenge.addEventListener('click', exitChallenge);
-
-            // --- 核心繪製邏輯 ---
-            function updateGrid() {
-                gridContainer.innerHTML = ''; 
-
-                if (currentMode === 'factor') {
-                    let total = parseInt(factorTotal.value) || 1;
-                    let rows = parseInt(factorSlider.value) || 1;
-                    
-                    if (total > 100) { total = 100; factorTotal.value = 100; }
-                    factorSlider.max = total;
-                    if (rows > total) { rows = total; factorSlider.value = total; }
-                    
-                    factorRowsVal.textContent = rows;
-
-                    gridContainer.style.display = 'grid';
-                    gridContainer.style.gridTemplateRows = `repeat(${rows}, 45px)`;
-                    gridContainer.style.gridAutoFlow = 'column';
-                    gridContainer.style.gap = '8px';
-
-                    const isFactor = (total % rows === 0);
-                    const columns = Math.floor(total / rows);
-                    const remainder = total % rows;
-                    const fullBlocksCount = columns * rows;
-                    const missingBlocks = isFactor ? 0 : rows - remainder;
-
-                    for (let i = 0; i < total; i++) {
-                        const block = document.createElement('div');
-                        block.classList.add('block');
-                        block.textContent = i + 1;
-                        
-                        if (isFactor) {
-                            block.classList.add('perfect');
-                        } else {
-                            if (i < fullBlocksCount) {
-                                block.classList.add('imperfect-main');
-                            } else {
-                                block.classList.add('imperfect-remainder');
-                            }
-                        }
-                        gridContainer.appendChild(block);
-                    }
-                    
-                    if (!isFactor) {
-                        for (let i = 0; i < missingBlocks; i++) {
-                            const ghostBlock = document.createElement('div');
-                            ghostBlock.classList.add('block', 'ghost-block');
-                            ghostBlock.textContent = '缺';
-                            gridContainer.appendChild(ghostBlock);
-                        }
-                    }
-
-                    // 處理挑戰模式的驗證
-                    if (isChallengeMode) {
-                        if (isFactor && !foundFactors.has(rows)) {
-                            foundFactors.add(rows);
-                            renderBadges();
-                        }
-
-                        if (foundFactors.size === targetFactors.length) {
-                            messageDisplay.innerHTML = `🎉 恭喜過關！你找出了 ${total} 的所有因數！<br><b>它們是：${targetFactors.join(', ')}</b>`;
-                            messageDisplay.className = 'message win-msg';
-                            return; // 提早結束，不顯示原本的回饋文字
-                        }
-                    }
-
-                    // 正常模式（或挑戰未完成時）的文字回饋
-                    if (isFactor) {
-                        messageDisplay.innerHTML = `完美長方形！沒有餘數，所以 <b>${rows} 是 ${total} 的因數</b>。<br><span class="math-equation">${total} ÷ ${rows} = ${columns}</span>`;
-                        messageDisplay.className = 'message success';
-                    } else {
-                        messageDisplay.innerHTML = `排不滿！多出了 ${remainder} 個，還缺 ${missingBlocks} 個洞。<br>有餘數，所以 <b>${rows} 不是 ${total} 的因數</b>。<br><span class="math-equation">${total} ÷ ${rows} = ${columns} ... ${remainder}</span>`;
-                        messageDisplay.className = 'message error';
-                    }
-
+                    numAInput.value = 3; // 預設值
+                    numBInput.value = 4;
                 } else {
-                    let base = parseInt(multipleBase.value) || 1;
-                    let times = parseInt(multipleSlider.value) || 1;
-                    
-                    if (base > 20) { base = 20; multipleBase.value = 20; }
-                    multipleTimesVal.textContent = times;
+                    btnFactor.classList.add('active');
+                    btnMultiple.classList.remove('active');
+                    numAInput.value = 12; // 預設值
+                    numBInput.value = 18;
+                }
+                updateChart();
+            }
 
-                    gridContainer.style.display = 'grid';
-                    gridContainer.style.gridTemplateColumns = `repeat(${base}, 45px)`;
-                    gridContainer.style.gridAutoFlow = 'row';
-                    gridContainer.style.gap = '8px';
+            btnMultiple.addEventListener('click', () => switchMode('multiple'));
+            btnFactor.addEventListener('click', () => switchMode('factor'));
+            numAInput.addEventListener('input', updateChart);
+            numBInput.addEventListener('input', updateChart);
 
-                    const totalBlocks = base * times;
+            function updateChart() {
+                let a = parseInt(numAInput.value) || 1;
+                let b = parseInt(numBInput.value) || 1;
+                
+                // 範圍限制
+                if(a > 100) { a = 100; numAInput.value = 100; }
+                if(b > 100) { b = 100; numBInput.value = 100; }
 
-                    for (let i = 0; i < totalBlocks; i++) {
-                        const block = document.createElement('div');
-                        block.classList.add('block', 'multiple-block');
-                        block.textContent = i + 1;
-                        gridContainer.appendChild(block);
+                instruction.textContent = currentMode === 'multiple' 
+                    ? `正在尋找 ${a} 和 ${b} 的公倍數` 
+                    : `正在尋找 ${a} 和 ${b} 的公因數`;
+
+                let listA = [];
+                let listB = [];
+                let listCommon = [];
+
+                // 掃描 1 到 100
+                for (let i = 1; i <= 100; i++) {
+                    const cell = document.getElementById(`cell-${i}`);
+                    // 重置樣式
+                    cell.className = 'cell';
+
+                    let isMatchA = false;
+                    let isMatchB = false;
+
+                    if (currentMode === 'multiple') {
+                        // 倍數邏輯：格子號碼能被 a 或 b 整除
+                        isMatchA = (i % a === 0);
+                        isMatchB = (i % b === 0);
+                    } else {
+                        // 因數邏輯：a 或 b 能被格子號碼整除，且格子號碼不能大於目標數
+                        isMatchA = (a % i === 0 && i <= a);
+                        isMatchB = (b % i === 0 && i <= b);
                     }
 
-                    messageDisplay.innerHTML = `每一排有 ${base} 個，排了 ${times} 排，總共有 ${totalBlocks} 個。<br><b>${totalBlocks} 是 ${base} 的倍數！</b><br><span class="math-equation">${base} × ${times} = ${totalBlocks}</span>`;
-                    messageDisplay.className = 'message multiple-msg';
+                    if (isMatchA) listA.push(i);
+                    if (isMatchB) listB.push(i);
+
+                    // 套用顏色標記
+                    if (isMatchA && isMatchB) {
+                        cell.classList.add('mark-common');
+                        listCommon.push(i);
+                    } else if (isMatchA) {
+                        cell.classList.add('mark-a');
+                    } else if (isMatchB) {
+                        cell.classList.add('mark-b');
+                    }
+                }
+
+                // 更新文字總結
+                if (currentMode === 'multiple') {
+                    summaryBox.innerHTML = `
+                        <div style="color: #1976D2;"><b>${a} 的倍數 (藍)：</b> ${listA.slice(0, 10).join(', ')}${listA.length > 10 ? '...' : ''}</div>
+                        <div style="color: #E64A19;"><b>${b} 的倍數 (橘)：</b> ${listB.slice(0, 10).join(', ')}${listB.length > 10 ? '...' : ''}</div>
+                        <div class="highlight-common" style="margin-top: 10px;"><b>共同的公倍數 (綠)：</b> ${listCommon.length > 0 ? listCommon.join(', ') : '100以內沒有'}</div>
+                    `;
+                } else {
+                    let gcd = listCommon.length > 0 ? Math.max(...listCommon) : '無';
+                    summaryBox.innerHTML = `
+                        <div style="color: #1976D2;"><b>${a} 的因數 (藍)：</b> ${listA.join(', ')}</div>
+                        <div style="color: #E64A19;"><b>${b} 的因數 (橘)：</b> ${listB.join(', ')}</div>
+                        <div class="highlight-common" style="margin-top: 10px;"><b>共同的公因數 (綠)：</b> ${listCommon.join(', ')}</div>
+                        <div style="color: #D81B60; font-weight: bold; margin-top: 5px;">最大公因數是：${gcd}</div>
+                    `;
                 }
             }
 
-            factorTotal.addEventListener('input', updateGrid);
-            factorSlider.addEventListener('input', updateGrid);
-            multipleBase.addEventListener('input', updateGrid);
-            multipleSlider.addEventListener('input', updateGrid);
-
-            updateGrid();
+            // 啟動時繪製
+            updateChart();
         });
     </script>
 </body>
