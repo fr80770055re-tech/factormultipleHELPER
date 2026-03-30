@@ -3,238 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>倍數掃雷陣</title>
+    <title>因數雙模探索器</title>
     <style>
-        /* 基礎排版與深色遊戲風格 */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
-            background-color: #2c3e50; 
-            color: #ecf0f1;
+            background-color: #f4f7f6;
             margin: 0;
             padding: 20px;
-            touch-action: manipulation; /* 提升平板觸控體驗 */
+            touch-action: manipulation;
         }
-        h1 { color: #f1c40f; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-bottom: 10px;}
-        
-        /* 遊戲資訊面板 */
-        .dashboard {
-            background: #34495e;
-            padding: 15px 20px;
-            border-radius: 15px;
-            box-shadow: 0 6px 0 #1a252f, 0 10px 10px rgba(0,0,0,0.3);
-            display: inline-block;
+        h1 { color: #333; margin-bottom: 20px; }
+
+        /* 頂部模式切換開關 */
+        .mode-toggle {
+            display: inline-flex;
+            background: #e0e0e0;
+            border-radius: 30px;
+            padding: 5px;
             margin-bottom: 25px;
-            width: 90%;
-            max-width: 500px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
         }
-        
-        .mission-text { font-size: 1.5rem; font-weight: bold; color: #3498db; margin-bottom: 10px; }
-        .stats { display: flex; justify-content: space-around; font-size: 1.2rem; }
-        .lives { color: #e74c3c; font-weight: bold; }
-        .progress { color: #2ecc71; font-weight: bold; }
-
-        /* 按鈕設計 */
-        .btn-restart {
-            background-color: #f39c12; color: white; border: none; padding: 10px 20px;
-            font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer;
-            margin-top: 15px; box-shadow: 0 4px 0 #d68910; transition: 0.1s;
-        }
-        .btn-restart:active { transform: translateY(4px); box-shadow: 0 0 0 #d68910; }
-
-        /* 掃雷百數表網格 */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 6px;
-            max-width: 600px;
-            margin: 0 auto;
-            background: #bdc3c7;
-            padding: 10px;
-            border-radius: 10px;
-        }
-        
-        /* 單一方塊設計 */
-        .cell {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .mode-btn {
+            padding: 10px 30px;
             font-size: 1.2rem;
             font-weight: bold;
-            background-color: #ecf0f1;
-            color: #2c3e50;
-            border-radius: 6px;
+            border: none;
+            border-radius: 25px;
             cursor: pointer;
-            box-shadow: 0 4px 0 #95a5a6;
-            transition: all 0.1s;
-            user-select: none;
+            background: transparent;
+            color: #777;
+            transition: 0.3s;
         }
-        .cell:active:not(.disabled) { transform: translateY(4px); box-shadow: 0 0 0 #95a5a6; }
+        .mode-btn.active {
+            background: #4CAF50;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* 共同容器樣式 */
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        .hidden { display: none !important; }
+
+        /* ================= 教學模式樣式 ================= */
+        .control-group { margin: 15px 0; font-size: 1.2rem; font-weight: bold; color: #555;}
+        input[type="number"] { font-size: 1.5rem; width: 80px; text-align: center; border: 2px solid #ccc; border-radius: 8px; margin-left: 10px; }
+        input[type="range"] { width: 100%; margin: 20px 0; height: 40px; cursor: pointer; }
         
-        /* 點擊後的狀態樣式 */
-        .cell.safe {
-            background-color: #2ecc71; color: white;
-            box-shadow: 0 2px 0 #27ae60; transform: translateY(2px); cursor: default;
+        .grid-display {
+            display: flex; justify-content: center; overflow-x: auto; padding: 20px 0; min-height: 200px;
         }
-        .cell.mine {
-            background-color: #e74c3c; color: white;
-            box-shadow: 0 2px 0 #c0392b; transform: translateY(2px); cursor: default;
-            animation: shake 0.4s;
+        #teachGrid { transition: all 0.3s ease; }
+        .block {
+            width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: bold; font-size: 1.1rem; box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
         }
-        .cell.disabled { pointer-events: none; opacity: 0.8; }
+        .perfect { background-color: #4CAF50; border: 2px solid #388E3C; } 
+        .imperfect-main { background-color: #2196F3; border: 2px solid #1976D2; }
+        .imperfect-remainder { background-color: #F44336; border: 2px solid #D32F2F; } 
+        .ghost-block { background-color: transparent; border: 2px dashed #B0BEC5; color: #90A4AE; box-shadow: none; }
+        
+        .msg-box { font-size: 1.3rem; font-weight: bold; padding: 15px; border-radius: 10px; margin-top: 15px; line-height: 1.5; }
+        .msg-success { background: #E8F5E9; color: #2E7D32; }
+        .msg-error { background: #FFF3E0; color: #E65100; }
+        .math-eq { font-family: monospace; font-size: 1.6rem; background: rgba(255,255,255,0.6); padding: 5px 10px; border-radius: 8px; display: inline-block; margin-top: 5px; }
 
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
+        /* ================= 遊戲模式樣式 ================= */
+        .game-header { background: #34495e; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .game-title { font-size: 1.6rem; color: #f1c40f; margin: 0 0 10px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);}
+        .game-stats { display: flex; justify-content: space-around; font-size: 1.2rem; font-weight: bold; }
+        
+        .number-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
         }
+        .num-btn {
+            aspect-ratio: 1;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            background: #ecf0f1;
+            color: #2c3e50;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #bdc3c7;
+            transition: 0.1s;
+        }
+        .num-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 #bdc3c7; }
+        .num-btn:disabled { cursor: not-allowed; }
+        
+        .num-correct { background: #2ecc71 !important; color: white !important; box-shadow: 0 2px 0 #27ae60 !important; transform: translateY(2px); }
+        .num-wrong { background: #e74c3c !important; color: white !important; box-shadow: 0 2px 0 #c0392b !important; transform: translateY(2px); animation: shake 0.3s; }
+        .num-missed { background: #f1c40f !important; color: #2c3e50 !important; box-shadow: 0 2px 0 #f39c12 !important; border: 2px dashed #d35400; }
 
-        /* 遊戲結束彈跳視窗 */
-        .overlay-msg {
-            display: none; position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); background: rgba(0,0,0,0.9);
-            padding: 30px; border-radius: 15px; z-index: 100;
-            border: 4px solid #f1c40f; text-align: center; width: 80%; max-width: 400px;
-        }
-        .msg-title { font-size: 2.5rem; margin-bottom: 10px; }
-        .win { color: #f1c40f; }
-        .lose { color: #e74c3c; }
+        @keyframes shake { 0%, 100% { transform: translateX(0) translateY(2px); } 25% { transform: translateX(-5px) translateY(2px); } 75% { transform: translateX(5px) translateY(2px); } }
+
+        .btn-action { background: #FF9800; color: white; border: none; padding: 12px 25px; font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 #F57C00; }
+        .btn-action:active { transform: translateY(4px); box-shadow: 0 0 0 #F57C00; }
+        
+        .game-msg { display: none; padding: 15px; border-radius: 10px; font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <h1>💣 倍數掃雷陣</h1>
+    <h1>🔍 因數探索器</h1>
 
-    <div class="dashboard">
-        <div class="mission-text" id="missionText">任務：找出所有 ? 的倍數</div>
-        <div class="stats">
-            <div class="lives">愛心：<span id="livesText">❤️❤️❤️</span></div>
-            <div class="progress">已找到：<span id="foundCount">0</span> / <span id="totalCount">0</span></div>
-        </div>
-        <button class="btn-restart" onclick="initGame()">更換題目</button>
+    <div class="mode-toggle">
+        <button id="btnModeTeach" class="mode-btn active" onclick="setMode('teach')">教學模式</button>
+        <button id="btnModeGame" class="mode-btn" onclick="setMode('game')">遊戲模式</button>
     </div>
 
-    <div class="grid" id="grid"></div>
+    <div id="teachContainer" class="container">
+        <div class="control-group">
+            <label>被除數 (目標數字)： <input type="number" id="teachTarget" value="12" min="1" max="60"></label>
+        </div>
+        <div class="control-group">
+            <label>除數 (試著排成 <span id="teachRowVal" style="color: #2196F3; font-size: 1.5rem;">3</span> 行)</label>
+            <input type="range" id="teachSlider" min="1" max="12" value="3">
+        </div>
 
-    <div class="overlay-msg" id="endGameMsg">
-        <div class="msg-title" id="msgTitle"></div>
-        <div style="font-size: 1.2rem; color: white; margin-bottom: 20px;" id="msgDesc"></div>
-        <button class="btn-restart" onclick="initGame()">再玩一次</button>
+        <div class="grid-display">
+            <div id="teachGrid"></div>
+        </div>
+
+        <div id="teachMsg" class="msg-box msg-success">
+            可以排成完美的長方形！<br><span class="math-eq">12 ÷ 3 = 4</span>
+        </div>
+    </div>
+
+    <div id="gameContainer" class="container hidden">
+        <div class="game-header">
+            <h2 class="game-title" id="gameTaskTitle">任務：找出 ? 的所有因數</h2>
+            <div class="game-stats">
+                <div>愛心：<span id="gameLives">❤️❤️❤️</span></div>
+                <div>進度：<span id="gameFound">0</span> / <span id="gameTotal">0</span></div>
+            </div>
+        </div>
+
+        <div id="gameEndMsg" class="game-msg"></div>
+
+        <div class="number-board" id="gameBoard"></div>
+
+        <button class="btn-action" onclick="initGame()">換一題挑戰</button>
     </div>
 
     <script>
-        // 取得 HTML 元素
-        const grid = document.getElementById('grid');
-        const missionText = document.getElementById('missionText');
-        const livesText = document.getElementById('livesText');
-        const foundCount = document.getElementById('foundCount');
-        const totalCount = document.getElementById('totalCount');
-        const endGameMsg = document.getElementById('endGameMsg');
-        const msgTitle = document.getElementById('msgTitle');
-        const msgDesc = document.getElementById('msgDesc');
+        // --- 全局模式切換 ---
+        function setMode(mode) {
+            const btnTeach = document.getElementById('btnModeTeach');
+            const btnGame = document.getElementById('btnModeGame');
+            const contTeach = document.getElementById('teachContainer');
+            const contGame = document.getElementById('gameContainer');
 
-        // 遊戲狀態變數
-        let targetMulti;
-        let totalMultiples = 0;
-        let found = 0;
-        let lives = 3;
-        let isGameOver = false;
-
-        // 初始化遊戲
-        function initGame() {
-            endGameMsg.style.display = 'none';
-            grid.innerHTML = '';
-            found = 0;
-            lives = 3;
-            isGameOver = false;
-            updateLivesUI();
-
-            // 隨機決定要找 2 到 9 的倍數 (適合國小難度)
-            targetMulti = Math.floor(Math.random() * 8) + 2; 
-            missionText.innerHTML = `任務：找出所有 <span style="color:#f1c40f; font-size: 2rem;">${targetMulti}</span> 的倍數`;
-
-            // 計算 1-100 總共有幾個目標數字的倍數
-            totalMultiples = Math.floor(100 / targetMulti);
-            foundCount.textContent = found;
-            totalCount.textContent = totalMultiples;
-
-            // 產生 100 個方塊
-            for (let i = 1; i <= 100; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.textContent = i;
-                
-                // 綁定點擊事件
-                cell.addEventListener('click', () => handleCellClick(cell, i));
-                grid.appendChild(cell);
-            }
-        }
-
-        // 處理方塊點擊
-        function handleCellClick(cell, number) {
-            if (isGameOver || cell.classList.contains('disabled')) return;
-
-            if (number % targetMulti === 0) {
-                // 點對了！(是倍數)
-                cell.classList.add('safe', 'disabled');
-                found++;
-                foundCount.textContent = found;
-
-                if (found === totalMultiples) {
-                    triggerGameOver(true);
-                }
+            if (mode === 'teach') {
+                btnTeach.classList.add('active');
+                btnGame.classList.remove('active');
+                contTeach.classList.remove('hidden');
+                contGame.classList.add('hidden');
+                updateTeachGrid();
             } else {
-                // 踩到地雷！(不是倍數)
-                cell.classList.add('mine', 'disabled');
-                cell.textContent = '💣';
-                lives--;
-                updateLivesUI();
-
-                if (lives <= 0) {
-                    triggerGameOver(false);
-                }
+                btnGame.classList.add('active');
+                btnTeach.classList.remove('active');
+                contGame.classList.remove('hidden');
+                contTeach.classList.add('hidden');
+                initGame();
             }
         }
 
-        // 更新愛心顯示
-        function updateLivesUI() {
-            livesText.textContent = '❤️'.repeat(lives) + '💔'.repeat(3 - lives);
-        }
+        // ================= 教學模式邏輯 =================
+        const tTarget = document.getElementById('teachTarget');
+        const tSlider = document.getElementById('teachSlider');
+        const tRowVal = document.getElementById('teachRowVal');
+        const tGrid = document.getElementById('teachGrid');
+        const tMsg = document.getElementById('teachMsg');
 
-        // 觸發遊戲結束
-        function triggerGameOver(isWin) {
-            isGameOver = true;
+        function updateTeachGrid() {
+            let total = parseInt(tTarget.value) || 1;
+            let rows = parseInt(tSlider.value) || 1;
+            if (total > 100) { total = 100; tTarget.value = 100; }
+            tSlider.max = total;
+            if (rows > total) { rows = total; tSlider.value = total; }
             
-            // 鎖定所有方塊，防止繼續點擊
-            const allCells = document.querySelectorAll('.cell');
-            allCells.forEach(c => c.classList.add('disabled'));
+            tRowVal.textContent = rows;
+            tGrid.innerHTML = '';
+            
+            tGrid.style.display = 'grid';
+            tGrid.style.gridTemplateRows = `repeat(${rows}, 40px)`;
+            tGrid.style.gridAutoFlow = 'column';
+            tGrid.style.gap = '6px';
 
-            endGameMsg.style.display = 'block';
-            if (isWin) {
-                msgTitle.textContent = '🎉 完美過關！';
-                msgTitle.className = 'msg-title win';
-                msgDesc.textContent = `太厲害了！你找出了所有 ${targetMulti} 的倍數。`;
+            const isFactor = (total % rows === 0);
+            const cols = Math.floor(total / rows);
+            const rem = total % rows;
+            const missing = isFactor ? 0 : rows - rem;
+
+            for (let i = 0; i < total; i++) {
+                const b = document.createElement('div');
+                b.className = 'block ' + (isFactor ? 'perfect' : (i < cols * rows ? 'imperfect-main' : 'imperfect-remainder'));
+                b.textContent = i + 1;
+                tGrid.appendChild(b);
+            }
+            if (!isFactor) {
+                for (let i = 0; i < missing; i++) {
+                    const gb = document.createElement('div');
+                    gb.className = 'block ghost-block';
+                    gb.textContent = '缺';
+                    tGrid.appendChild(gb);
+                }
+            }
+
+            if (isFactor) {
+                tMsg.className = 'msg-box msg-success';
+                tMsg.innerHTML = `完美長方形！沒有餘數，所以 <b>${rows} 是 ${total} 的因數</b>。<br><span class="math-eq">${total} ÷ ${rows} = ${cols}</span>`;
             } else {
-                msgTitle.textContent = '💥 任務失敗！';
-                msgTitle.className = 'msg-title lose';
-                msgDesc.textContent = `愛心扣光了，${targetMulti} 的倍數還差 ${totalMultiples - found} 個。`;
+                tMsg.className = 'msg-box msg-error';
+                tMsg.innerHTML = `排不滿長方形，多出 ${rem} 個。有餘數，所以 <b>${rows} 不是 ${total} 的因數</b>。<br><span class="math-eq">${total} ÷ ${rows} = ${cols} ... ${rem}</span>`;
+            }
+        }
+
+        tTarget.addEventListener('input', updateTeachGrid);
+        tSlider.addEventListener('input', updateTeachGrid);
+
+        // ================= 遊戲模式邏輯 =================
+        const gTitle = document.getElementById('gameTaskTitle');
+        const gLivesUI = document.getElementById('gameLives');
+        const gFoundUI = document.getElementById('gameFound');
+        const gTotalUI = document.getElementById('gameTotal');
+        const gBoard = document.getElementById('gameBoard');
+        const gEndMsg = document.getElementById('gameEndMsg');
+
+        let gTarget = 0;
+        let gFactors = [];
+        let gFoundCount = 0;
+        let gLives = 3;
+        let gIsOver = false;
+
+        function initGame() {
+            gEndMsg.style.display = 'none';
+            gBoard.innerHTML = '';
+            gLives = 3;
+            gFoundCount = 0;
+            gIsOver = false;
+            updateGameUI();
+
+            // 題庫：適合練習因數的數字
+            const pool = [12, 16, 18, 20, 24, 28, 30, 32, 36, 40];
+            gTarget = pool[Math.floor(Math.random() * pool.length)];
+            gTitle.innerHTML = `任務：找出 <span style="font-size: 2rem;">${gTarget}</span> 的所有因數`;
+
+            // 計算所有因數
+            gFactors = [];
+            for (let i = 1; i <= gTarget; i++) {
+                if (gTarget % i === 0) gFactors.push(i);
+            }
+            gTotalUI.textContent = gFactors.length;
+
+            // 產生 1 到 目標數字 的按鈕面板
+            for (let i = 1; i <= gTarget; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'num-btn';
+                btn.textContent = i;
+                btn.onclick = () => handleGameClick(btn, i);
+                gBoard.appendChild(btn);
+            }
+        }
+
+        function handleGameClick(btn, num) {
+            if (gIsOver || btn.disabled) return;
+            btn.disabled = true;
+
+            if (gTarget % num === 0) {
+                // 答對了：是因數
+                btn.classList.add('num-correct');
+                gFoundCount++;
+                updateGameUI();
                 
-                // 失敗時的教學機制：把原本該點卻沒點到的正確答案亮成黃色
-                allCells.forEach((c, index) => {
-                    let num = index + 1;
-                    if (num % targetMulti === 0 && !c.classList.contains('safe')) {
-                        c.style.backgroundColor = '#f1c40f';
-                        c.style.color = '#2c3e50';
+                if (gFoundCount === gFactors.length) {
+                    endGame(true);
+                }
+            } else {
+                // 答錯了：不是因數
+                btn.classList.add('num-wrong');
+                gLives--;
+                updateGameUI();
+                
+                if (gLives <= 0) {
+                    endGame(false);
+                }
+            }
+        }
+
+        function updateGameUI() {
+            gLivesUI.textContent = '❤️'.repeat(gLives) + '💔'.repeat(3 - gLives);
+            gFoundUI.textContent = gFoundCount;
+        }
+
+        function endGame(isWin) {
+            gIsOver = true;
+            gEndMsg.style.display = 'block';
+            
+            // 鎖定所有按鈕
+            const btns = gBoard.querySelectorAll('.num-btn');
+            btns.forEach(b => b.disabled = true);
+
+            if (isWin) {
+                gEndMsg.className = 'game-msg msg-success';
+                gEndMsg.textContent = '🎉 挑戰成功！你找齊了所有因數！';
+            } else {
+                gEndMsg.className = 'game-msg msg-error';
+                gEndMsg.textContent = '💥 挑戰失敗，愛心扣光了！黃色的數字是你沒找出來的因數喔。';
+                
+                // 失敗時，提示漏掉的因數
+                btns.forEach((b, idx) => {
+                    let num = idx + 1;
+                    if (gTarget % num === 0 && !b.classList.contains('num-correct')) {
+                        b.classList.add('num-missed');
                     }
                 });
             }
         }
 
-        // 網頁載入完成後自動啟動第一次遊戲
-        window.onload = initGame;
+        // 初始化執行
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTeachGrid();
+        });
     </script>
 </body>
 </html>
