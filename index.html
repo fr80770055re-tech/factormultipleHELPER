@@ -3,236 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>公因數與公倍數濾鏡</title>
+    <title>倍數掃雷陣</title>
     <style>
+        /* 基礎排版與深色遊戲風格 */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
-            background-color: #f4f7f6;
+            background-color: #2c3e50; 
+            color: #ecf0f1;
             margin: 0;
             padding: 20px;
-            touch-action: manipulation;
+            touch-action: manipulation; /* 提升平板觸控體驗 */
         }
-        h1 { color: #333; margin-bottom: 10px; }
+        h1 { color: #f1c40f; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-bottom: 10px;}
         
-        .tab-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-        .tab-btn {
-            padding: 12px 25px; font-size: 1.3rem; border: 2px solid transparent;
-            border-radius: 12px; cursor: pointer; background-color: #e0e0e0; font-weight: bold;
+        /* 遊戲資訊面板 */
+        .dashboard {
+            background: #34495e;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 6px 0 #1a252f, 0 10px 10px rgba(0,0,0,0.3);
+            display: inline-block;
+            margin-bottom: 25px;
+            width: 90%;
+            max-width: 500px;
         }
-        .tab-btn.active { background-color: #4CAF50; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         
-        .controls {
-            background: white; padding: 20px; border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: inline-block;
-            margin-bottom: 20px; width: 90%; max-width: 600px;
-        }
-        .input-group { display: flex; justify-content: center; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;}
-        
-        /* 兩個數字的專屬顏色標籤 */
-        .label-a { color: #1976D2; font-weight: bold; font-size: 1.2rem; }
-        .label-b { color: #E64A19; font-weight: bold; font-size: 1.2rem; }
-        
-        input[type="number"] {
-            font-size: 1.5rem; width: 70px; padding: 5px; text-align: center;
-            border: 2px solid #ccc; border-radius: 8px; margin-left: 5px;
-        }
+        .mission-text { font-size: 1.5rem; font-weight: bold; color: #3498db; margin-bottom: 10px; }
+        .stats { display: flex; justify-content: space-around; font-size: 1.2rem; }
+        .lives { color: #e74c3c; font-weight: bold; }
+        .progress { color: #2ecc71; font-weight: bold; }
 
-        /* 百數表網格設計 */
-        .chart-container {
+        /* 按鈕設計 */
+        .btn-restart {
+            background-color: #f39c12; color: white; border: none; padding: 10px 20px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 8px; cursor: pointer;
+            margin-top: 15px; box-shadow: 0 4px 0 #d68910; transition: 0.1s;
+        }
+        .btn-restart:active { transform: translateY(4px); box-shadow: 0 0 0 #d68910; }
+
+        /* 掃雷百數表網格 */
+        .grid {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
-            gap: 5px;
+            gap: 6px;
             max-width: 600px;
             margin: 0 auto;
-            background: white;
-            padding: 15px;
+            background: #bdc3c7;
+            padding: 10px;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+        
+        /* 單一方塊設計 */
         .cell {
             aspect-ratio: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #ccc; /* 預設為淡色，不干擾視覺 */
-            border-radius: 6px;
-            background-color: #f9f9f9;
-            transition: all 0.3s ease;
-        }
-
-        /* 顏色標記邏輯 */
-        .mark-a { background-color: #BBDEFB; color: #1565C0; border: 2px solid #90CAF9; } /* 數字A：淺藍 */
-        .mark-b { background-color: #FFCCBC; color: #D84315; border: 2px solid #FFAB91; } /* 數字B：淺橘 */
-        
-        /* 交集：公因/公倍數 (綠色 + 放大跳動效果) */
-        .mark-common {
-            background-color: #4CAF50; 
-            color: white; 
-            border: 3px solid #2E7D32;
-            transform: scale(1.1);
-            z-index: 10;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            animation: pop 0.4s ease-out;
-        }
-
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1.1); }
-        }
-
-        /* 結果文字區 */
-        .summary {
-            margin-top: 20px;
-            padding: 15px;
-            background: #E8F5E9;
-            border-radius: 10px;
             font-size: 1.2rem;
-            line-height: 1.6;
-            text-align: left;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            font-weight: bold;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #95a5a6;
+            transition: all 0.1s;
+            user-select: none;
         }
-        .highlight-common { color: #2E7D32; font-weight: bold; font-size: 1.4rem;}
+        .cell:active:not(.disabled) { transform: translateY(4px); box-shadow: 0 0 0 #95a5a6; }
+        
+        /* 點擊後的狀態樣式 */
+        .cell.safe {
+            background-color: #2ecc71; color: white;
+            box-shadow: 0 2px 0 #27ae60; transform: translateY(2px); cursor: default;
+        }
+        .cell.mine {
+            background-color: #e74c3c; color: white;
+            box-shadow: 0 2px 0 #c0392b; transform: translateY(2px); cursor: default;
+            animation: shake 0.4s;
+        }
+        .cell.disabled { pointer-events: none; opacity: 0.8; }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* 遊戲結束彈跳視窗 */
+        .overlay-msg {
+            display: none; position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: rgba(0,0,0,0.9);
+            padding: 30px; border-radius: 15px; z-index: 100;
+            border: 4px solid #f1c40f; text-align: center; width: 80%; max-width: 400px;
+        }
+        .msg-title { font-size: 2.5rem; margin-bottom: 10px; }
+        .win { color: #f1c40f; }
+        .lose { color: #e74c3c; }
     </style>
 </head>
 <body>
 
-    <h1>公因數與公倍數濾鏡</h1>
+    <h1>💣 倍數掃雷陣</h1>
 
-    <div class="tab-container">
-        <button id="btnMultiple" class="tab-btn active">找公倍數</button>
-        <button id="btnFactor" class="tab-btn">找公因數</button>
-    </div>
-
-    <div class="controls">
-        <div class="input-group">
-            <div class="label-a">數字 A: <input type="number" id="numA" value="3" min="1" max="100"></div>
-            <div class="label-b">數字 B: <input type="number" id="numB" value="4" min="1" max="100"></div>
+    <div class="dashboard">
+        <div class="mission-text" id="missionText">任務：找出所有 ? 的倍數</div>
+        <div class="stats">
+            <div class="lives">愛心：<span id="livesText">❤️❤️❤️</span></div>
+            <div class="progress">已找到：<span id="foundCount">0</span> / <span id="totalCount">0</span></div>
         </div>
-        <div id="instruction" style="color: #666; font-size: 1.1rem;">正在尋找 3 和 4 的公倍數</div>
+        <button class="btn-restart" onclick="initGame()">更換題目</button>
     </div>
 
-    <div class="chart-container" id="chart"></div>
+    <div class="grid" id="grid"></div>
 
-    <div class="summary" id="summaryBox"></div>
+    <div class="overlay-msg" id="endGameMsg">
+        <div class="msg-title" id="msgTitle"></div>
+        <div style="font-size: 1.2rem; color: white; margin-bottom: 20px;" id="msgDesc"></div>
+        <button class="btn-restart" onclick="initGame()">再玩一次</button>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            let currentMode = 'multiple';
-            const chart = document.getElementById('chart');
-            const numAInput = document.getElementById('numA');
-            const numBInput = document.getElementById('numB');
-            const instruction = document.getElementById('instruction');
-            const summaryBox = document.getElementById('summaryBox');
-            
-            const btnMultiple = document.getElementById('btnMultiple');
-            const btnFactor = document.getElementById('btnFactor');
+        // 取得 HTML 元素
+        const grid = document.getElementById('grid');
+        const missionText = document.getElementById('missionText');
+        const livesText = document.getElementById('livesText');
+        const foundCount = document.getElementById('foundCount');
+        const totalCount = document.getElementById('totalCount');
+        const endGameMsg = document.getElementById('endGameMsg');
+        const msgTitle = document.getElementById('msgTitle');
+        const msgDesc = document.getElementById('msgDesc');
 
-            // 初始化建立 100 個格子
+        // 遊戲狀態變數
+        let targetMulti;
+        let totalMultiples = 0;
+        let found = 0;
+        let lives = 3;
+        let isGameOver = false;
+
+        // 初始化遊戲
+        function initGame() {
+            endGameMsg.style.display = 'none';
+            grid.innerHTML = '';
+            found = 0;
+            lives = 3;
+            isGameOver = false;
+            updateLivesUI();
+
+            // 隨機決定要找 2 到 9 的倍數 (適合國小難度)
+            targetMulti = Math.floor(Math.random() * 8) + 2; 
+            missionText.innerHTML = `任務：找出所有 <span style="color:#f1c40f; font-size: 2rem;">${targetMulti}</span> 的倍數`;
+
+            // 計算 1-100 總共有幾個目標數字的倍數
+            totalMultiples = Math.floor(100 / targetMulti);
+            foundCount.textContent = found;
+            totalCount.textContent = totalMultiples;
+
+            // 產生 100 個方塊
             for (let i = 1; i <= 100; i++) {
                 const cell = document.createElement('div');
-                cell.classList.add('cell');
+                cell.className = 'cell';
                 cell.textContent = i;
-                cell.id = `cell-${i}`;
-                chart.appendChild(cell);
-            }
-
-            function switchMode(mode) {
-                currentMode = mode;
-                if (mode === 'multiple') {
-                    btnMultiple.classList.add('active');
-                    btnFactor.classList.remove('active');
-                    numAInput.value = 3; // 預設值
-                    numBInput.value = 4;
-                } else {
-                    btnFactor.classList.add('active');
-                    btnMultiple.classList.remove('active');
-                    numAInput.value = 12; // 預設值
-                    numBInput.value = 18;
-                }
-                updateChart();
-            }
-
-            btnMultiple.addEventListener('click', () => switchMode('multiple'));
-            btnFactor.addEventListener('click', () => switchMode('factor'));
-            numAInput.addEventListener('input', updateChart);
-            numBInput.addEventListener('input', updateChart);
-
-            function updateChart() {
-                let a = parseInt(numAInput.value) || 1;
-                let b = parseInt(numBInput.value) || 1;
                 
-                // 範圍限制
-                if(a > 100) { a = 100; numAInput.value = 100; }
-                if(b > 100) { b = 100; numBInput.value = 100; }
+                // 綁定點擊事件
+                cell.addEventListener('click', () => handleCellClick(cell, i));
+                grid.appendChild(cell);
+            }
+        }
 
-                instruction.textContent = currentMode === 'multiple' 
-                    ? `正在尋找 ${a} 和 ${b} 的公倍數` 
-                    : `正在尋找 ${a} 和 ${b} 的公因數`;
+        // 處理方塊點擊
+        function handleCellClick(cell, number) {
+            if (isGameOver || cell.classList.contains('disabled')) return;
 
-                let listA = [];
-                let listB = [];
-                let listCommon = [];
+            if (number % targetMulti === 0) {
+                // 點對了！(是倍數)
+                cell.classList.add('safe', 'disabled');
+                found++;
+                foundCount.textContent = found;
 
-                // 掃描 1 到 100
-                for (let i = 1; i <= 100; i++) {
-                    const cell = document.getElementById(`cell-${i}`);
-                    // 重置樣式
-                    cell.className = 'cell';
-
-                    let isMatchA = false;
-                    let isMatchB = false;
-
-                    if (currentMode === 'multiple') {
-                        // 倍數邏輯：格子號碼能被 a 或 b 整除
-                        isMatchA = (i % a === 0);
-                        isMatchB = (i % b === 0);
-                    } else {
-                        // 因數邏輯：a 或 b 能被格子號碼整除，且格子號碼不能大於目標數
-                        isMatchA = (a % i === 0 && i <= a);
-                        isMatchB = (b % i === 0 && i <= b);
-                    }
-
-                    if (isMatchA) listA.push(i);
-                    if (isMatchB) listB.push(i);
-
-                    // 套用顏色標記
-                    if (isMatchA && isMatchB) {
-                        cell.classList.add('mark-common');
-                        listCommon.push(i);
-                    } else if (isMatchA) {
-                        cell.classList.add('mark-a');
-                    } else if (isMatchB) {
-                        cell.classList.add('mark-b');
-                    }
+                if (found === totalMultiples) {
+                    triggerGameOver(true);
                 }
+            } else {
+                // 踩到地雷！(不是倍數)
+                cell.classList.add('mine', 'disabled');
+                cell.textContent = '💣';
+                lives--;
+                updateLivesUI();
 
-                // 更新文字總結
-                if (currentMode === 'multiple') {
-                    summaryBox.innerHTML = `
-                        <div style="color: #1976D2;"><b>${a} 的倍數 (藍)：</b> ${listA.slice(0, 10).join(', ')}${listA.length > 10 ? '...' : ''}</div>
-                        <div style="color: #E64A19;"><b>${b} 的倍數 (橘)：</b> ${listB.slice(0, 10).join(', ')}${listB.length > 10 ? '...' : ''}</div>
-                        <div class="highlight-common" style="margin-top: 10px;"><b>共同的公倍數 (綠)：</b> ${listCommon.length > 0 ? listCommon.join(', ') : '100以內沒有'}</div>
-                    `;
-                } else {
-                    let gcd = listCommon.length > 0 ? Math.max(...listCommon) : '無';
-                    summaryBox.innerHTML = `
-                        <div style="color: #1976D2;"><b>${a} 的因數 (藍)：</b> ${listA.join(', ')}</div>
-                        <div style="color: #E64A19;"><b>${b} 的因數 (橘)：</b> ${listB.join(', ')}</div>
-                        <div class="highlight-common" style="margin-top: 10px;"><b>共同的公因數 (綠)：</b> ${listCommon.join(', ')}</div>
-                        <div style="color: #D81B60; font-weight: bold; margin-top: 5px;">最大公因數是：${gcd}</div>
-                    `;
+                if (lives <= 0) {
+                    triggerGameOver(false);
                 }
             }
+        }
 
-            // 啟動時繪製
-            updateChart();
-        });
+        // 更新愛心顯示
+        function updateLivesUI() {
+            livesText.textContent = '❤️'.repeat(lives) + '💔'.repeat(3 - lives);
+        }
+
+        // 觸發遊戲結束
+        function triggerGameOver(isWin) {
+            isGameOver = true;
+            
+            // 鎖定所有方塊，防止繼續點擊
+            const allCells = document.querySelectorAll('.cell');
+            allCells.forEach(c => c.classList.add('disabled'));
+
+            endGameMsg.style.display = 'block';
+            if (isWin) {
+                msgTitle.textContent = '🎉 完美過關！';
+                msgTitle.className = 'msg-title win';
+                msgDesc.textContent = `太厲害了！你找出了所有 ${targetMulti} 的倍數。`;
+            } else {
+                msgTitle.textContent = '💥 任務失敗！';
+                msgTitle.className = 'msg-title lose';
+                msgDesc.textContent = `愛心扣光了，${targetMulti} 的倍數還差 ${totalMultiples - found} 個。`;
+                
+                // 失敗時的教學機制：把原本該點卻沒點到的正確答案亮成黃色
+                allCells.forEach((c, index) => {
+                    let num = index + 1;
+                    if (num % targetMulti === 0 && !c.classList.contains('safe')) {
+                        c.style.backgroundColor = '#f1c40f';
+                        c.style.color = '#2c3e50';
+                    }
+                });
+            }
+        }
+
+        // 網頁載入完成後自動啟動第一次遊戲
+        window.onload = initGame;
     </script>
 </body>
 </html>
